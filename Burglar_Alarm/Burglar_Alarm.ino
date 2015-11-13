@@ -29,6 +29,18 @@
  *
  * EQ : Enter password (4-Digit Pin)
  * Return : Return to standard menu
+ *
+ * EEPROM Mapping
+ * --------------
+ * 0 - 1 : password (unsigned int)
+ * 2 - 3 : admin password (unsigned int)
+ * 4     : number of breaches (unsigned short int)
+ * 100 - 1024 : Logging
+ *   Bit Mapping (5 bytes each):
+ *   0 - 3 : time (unsigned long int)
+ *   4     : zone (unsigned short int)
+ *   
+ *   
  */
 
 
