@@ -2,6 +2,32 @@
 #include <IRremote.h>
 #include <LiquidCrystal.h>
 
+/*
+ * Pins
+ * ====
+ * 
+ * Digital
+ * -------
+ * 1 (interrupt) : Digital Zone 1 
+ * 
+ * 4 : LCD Screen 
+ * 5 : LCD Screen
+ * 6 : LCD Screen
+ * 7 : LCD Screen
+ * 8 : LCD Screen
+ * 9 : LCD Screen
+ * 
+ * 12: IR Sensor
+ * 13: ALARM
+ * 
+ * Analog
+ * ------
+ * 0 : Analog Zone 1
+ * 
+ */
+
+
+
 #define TIME_MSG_LEN  11   // time sync to PC is HEADER followed by Unix time_t as ten ASCII digits
 #define TIME_HEADER  'T'   // Header tag for serial time sync message
 #define TIME_REQUEST  7    // ASCII bell character requests a time sync message 
