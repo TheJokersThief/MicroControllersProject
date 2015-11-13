@@ -57,29 +57,29 @@
  *   
  */
 
-#define PASSWORD              0
-#define ADMIN_PASSWORD        2
+#define PASSWORD              0     // 4 digit pin
+#define ADMIN_PASSWORD        2     // 4 digit pin
 #define NUMBER_OF_BREACHES    4
 
 // ~~~~~ ENTRY / EXIT ZONE ~~~~~
 #define ENTRY_EXIT_ZONE       0
-#define LOWER_TIME_BOUND      5
-#define UPPER_TIME_BOUND      6
+#define LOWER_TIME_BOUND      5     // Hour (2 digits max)
+#define UPPER_TIME_BOUND      6     // Hour (2 digits max)
 
 // ~~~~~~~ DIGITAL ZONE ~~~~~~~~
 #define DIGITAL_ZONE          1
-#define DIGITAL_CONDITION     20
-#define DIGITAL_ZONE_PIN      1
+#define DIGITAL_CONDITION     20    // HIGH (1) or LOW (0)
+#define DIGITAL_ZONE_PIN      1   
 
  // ~~~~~~~ ANALOG ZONE ~~~~~~~~
 #define ANALOG_ZONE           2
-#define ANALOG_THRESHOLD      30
+#define ANALOG_THRESHOLD      30    // short between 0 - 255
 #define ANALOG_ZONE_PIN       0
 
 
  // ~~~ CONTINUOUS MON ZONE ~~~~
 #define CONTINUOUS_ZONE       3
-#define CONT_ZONE_CONDITION   40
+#define CONT_ZONE_CONDITION   40    // High to low (1) ; low to high (0)
 
 #define LOG_MEMORY_START  100
 #define LOG_LENGTH        5
