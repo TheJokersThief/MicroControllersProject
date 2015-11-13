@@ -155,8 +155,8 @@ void printWithLeadingZero(int val){
 }
 
 int loginMode() {
-  if( !is_user_logged_in ){
-    // if user is already logged in, bypass login
+  if( !is_user_logged_in && !is_admin ){
+    // if admin is already logged in, bypass login
 
     int pin_entered = 0;
     unsigned int password, admin_password;
