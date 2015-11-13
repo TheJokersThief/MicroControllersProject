@@ -233,13 +233,13 @@ void loop() {
         break;
       case 0xFFA25D:
           // POW
-          if( !alarm_active && is_user_logged_in )
+          if( !alarm_active && ( is_user_logged_in || loginMode() ) )
             toggleAlarmSet( );
         break;
       case 0xFF629D: Serial.println("MODE");        break;
       case 0xFFE21D:
           // MUTE
-          if( alarm_active && loginMode() ){
+          if( alarm_active && ( is_user_logged_in || loginMode() ) ){
             toggleAlarm();
           }
         break;
