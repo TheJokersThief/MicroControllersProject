@@ -67,6 +67,16 @@ LiquidCrystal lcd(9, 8, 7, 6, 5, 4);
 // Used to check if current user is an admin
 unsigned short int is_admin = 0;
 
+// 0 is disabled ; 1 is enabled
+unsigned short int alarm_set = 0;
+
+// 0 alarm is idle ; 1 alarm is ringing
+unsigned short int alarm_active = 0;
+
+// 0 not logged in ; 1 logged in 
+unsigned short int is_user_logged_in = 0;
+
+
 // Taken from an example of Time.h, a method to sync time to PC
 // using a Unix time value sent by the PC over serial
 //void syncTime(){
@@ -140,10 +150,16 @@ void loginMode() {
   }
 
   if( pin_entered == password ){
-    // disable alarm
+    is_user_logged_in = 1;
   } else if( pin_entered == admin_password ){
     is_admin = 1;
-    // disable alarm if running
+    is_user_logged_in = 1;
+  }
+
+  if( is_user_logged_in ){
+    // Disable alarm
+    digitalWrite( ALARM_PIN, LOW );
+    alarm_active = 0;
   }
 }
 
@@ -173,6 +189,27 @@ void appendLog( unsigned long int time_of_breach, unsigned short int zone ){
  */
 void exitAdmin( ){
   is_admin = 0;
+  logout( );
+}
+
+void logout( ){
+  is_user_logged_in = 0;
+}
+
+void toggleAlarmSet( ){
+  alarm_set = !alarm_set;
+}
+
+/**
+ * Change whether alarm is ringing or not
+ */
+void toggleAlarm( ){
+  alarm_active = !alarm_active;
+
+  if( alarm_active )
+    digitalWrite( ALARM_PIN, HIGH );
+  else 
+    digitalWrite( ALARM_PIN, LOW );
 }
 
 void setup() {
@@ -198,7 +235,11 @@ void loop() {
           // EQ
           loginMode();
         break;
-      case 0xFFA25D: Serial.println("POW");         break;
+      case 0xFFA25D:
+          // POW
+          if( !alarm_active && is_user_logged_in )
+            toggleAlarmSet( );
+        break;
       case 0xFF629D: Serial.println("MODE");        break;
       case 0xFFE21D: Serial.println("MUTE");        break;
       case 0xFF22DD: Serial.println("PREV");        break;
@@ -211,9 +252,8 @@ void loop() {
 
       case 0xFFB04F:
           // RET
-          if( is_admin ){
+          if( is_admin )
             exitAdmin( );
-          }
         break;
       case 0xFF30CF: Serial.println("1");           break;
       case 0xFF18E7: Serial.println("2");           break;
