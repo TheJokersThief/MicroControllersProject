@@ -35,23 +35,24 @@
  * --------------
  * 0 - 1 : password (unsigned int)
  * 2 - 3 : admin password (unsigned int)
- * 4     : number of breaches (unsigned short int)
+ * 4     : number of breaches (unsigned short)
  *
  *  Entry/Exit (Zone 0)
- *    5     : lower-bound hour (unsigned short int)
- *    6     : upper-bound hour (unsigned short int)
+ *    5     : lower-bound hour (unsigned short)
+ *    6     : upper-bound hour (unsigned short)
  *
  *  Digital (Zone 1)
- *    20    : trip condition (unsigned short int)
+ *    20    : trip condition (unsigned short)
  *    
  *  Analog  (Zone 2)
  *    30 - 32 : threshold (unsigned int)
  *
  *  Continuous Monitoring (Zone 3)
+ *    40      : condition (unsigned short)
  * 100 - 1024 : Logging
  *   Bit Mapping (5 bytes each):
  *   0 - 3 : time (unsigned long int)
- *   4     : zone (unsigned short int)
+ *   4     : zone (unsigned short)
  *   
  *   
  */
@@ -96,16 +97,16 @@ decode_results results;
 LiquidCrystal lcd(9, 8, 7, 6, 5, 4);
 
 // Used to check if current user is an admin
-unsigned short int is_admin = 0;
+unsigned short is_admin = 0;
 
 // 0 is disabled ; 1 is enabled
-unsigned short int alarm_set = 0;
+unsigned short alarm_set = 0;
 
 // 0 alarm is idle ; 1 alarm is ringing
-unsigned short int alarm_active = 0;
+unsigned short alarm_active = 0;
 
 // 0 not logged in ; 1 logged in 
-unsigned short int is_user_logged_in = 0;
+unsigned short is_user_logged_in = 0;
 
 
 // Taken from an example of Time.h, a method to sync time to PC
@@ -195,9 +196,9 @@ int loginMode() {
  * @param time_of_breach Unix timestamp of current time
  * @param zone           Zone number that was breached
  */
-void appendLog( unsigned long int time_of_breach, unsigned short int zone ){
+void appendLog( unsigned long int time_of_breach, unsigned short zone ){
 
-  unsigned short int number_of_breaches;
+  unsigned short number_of_breaches;
   EEPROM.get( NUMBER_OF_BREACHES, number_of_breaches );
   int memory_address = LOG_MEMORY_START + (LOG_LENGTH * number_of_breaches );
 
