@@ -113,8 +113,9 @@ void printWithLeadingZero(int val){
 
 void loginMode() {
   int pin_entered = 0;
-  unsigned int password = EEPROM.get( PASSWORD, int );
-  unsigned int admin_password = EEPROM.get( ADMIN_PASSWORD, int );
+  unsigned int password, admin_password;
+  EEPROM.get( PASSWORD, password );
+  EEPROM.get( ADMIN_PASSWORD, admin_password );
 
   for(int i = 0; i < 4; i++){
     int received_value = 0;
@@ -153,7 +154,8 @@ void loginMode() {
  */
 void appendLog( unsigned long int time_of_breach, unsigned short int zone ){
 
-  unsigned short int number_of_breaches = EEPROM.get( NUMBER_OF_BREACHES, short );
+  unsigned short int number_of_breaches;
+  EEPROM.get( NUMBER_OF_BREACHES, number_of_breaches );
   int memory_address = LOG_MEMORY_START + (LOG_LENGTH * number_of_breaches );
 
   // Increase the number of breaches
@@ -164,6 +166,13 @@ void appendLog( unsigned long int time_of_breach, unsigned short int zone ){
   EEPROM.write( memory_address, time_of_breach );
   memory_address += sizeof(time_of_breach);
   EEPROM.write( memory_address, zone );
+}
+
+/**
+ * Exit admin mode
+ */
+void exitAdmin( ){
+  is_admin = 0;
 }
 
 void setup() {
@@ -185,7 +194,10 @@ void loop() {
   if( irrecv.decode(&results) ) {
     switch(results.value)
     {
-      case 0xFF906F: loginMode();                   break;
+      case 0xFF906F: 
+          // EQ
+          loginMode();
+        break;
       case 0xFFA25D: Serial.println("POW");         break;
       case 0xFF629D: Serial.println("MODE");        break;
       case 0xFFE21D: Serial.println("MUTE");        break;
@@ -196,7 +208,13 @@ void loop() {
       case 0xFFA857: Serial.println("+");           break;
       case 0xFF6897: Serial.println("0");           break;
       case 0xFF9867: Serial.println("100+");        break;
-      case 0xFFB04F: Serial.println("RET");         break;
+
+      case 0xFFB04F:
+          // RET
+          if( is_admin ){
+            exitAdmin( );
+          }
+        break;
       case 0xFF30CF: Serial.println("1");           break;
       case 0xFF18E7: Serial.println("2");           break;
       case 0xFFFFFF: Serial.println("3");           break;
