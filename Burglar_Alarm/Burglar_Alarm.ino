@@ -102,6 +102,31 @@ void printWithLeadingZero(int val){
   lcd.print(val);
 }
 
+void loginMode() {
+  int pin_entered = 0;
+  for(int i = 0; i < 4; i++){
+    int received_value = 0;
+    while( !irrecv.decode(&results) ) { /* Wait for input! */ }
+    switch(results.value)
+    {
+      case 0xFF6897: received_value = 0;      break;
+      case 0xFF30CF: received_value = 1;      break;
+      case 0xFF18E7: received_value = 2;      break;
+      case 0xFFFFFF: received_value = 3;      break;
+      case 0xFF10EF: received_value = 4;      break;
+      case 0xFF38C7: received_value = 5;      break;
+      case 0xFF5AA5: received_value = 6;      break;
+      case 0xFF42BD: received_value = 7;      break;
+      case 0xFF4AB5: received_value = 8;      break;
+      case 0xFF52AD: received_value = 9;      break;
+      case 0xFFB04F: Serial.println("RET");   break;
+      default: i--; break; // Other button press or undefined
+    }
+    pin_entered *= 10;
+    pin_entered += received_value;
+  }
+}
+
 void setup() {
   pinMode(ALARM_PIN, OUTPUT);
   
@@ -121,6 +146,7 @@ void loop() {
   if( irrecv.decode(&results) ) {
     switch(results.value)
     {
+      case 0xFF906F: loginMode();                   break;
       case 0xFFA25D: Serial.println("POW");         break;
       case 0xFF629D: Serial.println("MODE");        break;
       case 0xFFE21D: Serial.println("MUTE");        break;
@@ -129,7 +155,6 @@ void loop() {
       case 0xFFC23D: Serial.println("PLAY/PAUSE");  break;
       case 0xFFE01F: Serial.println("-");           break;
       case 0xFFA857: Serial.println("+");           break;
-      case 0xFF906F: Serial.println("EQ");          break;
       case 0xFF6897: Serial.println("0");           break;
       case 0xFF9867: Serial.println("100+");        break;
       case 0xFFB04F: Serial.println("RET");         break;
