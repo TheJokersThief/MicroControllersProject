@@ -79,6 +79,7 @@
 
  // ~~~ CONTINUOUS MON ZONE ~~~~
 #define CONTINUOUS_ZONE       3
+#define CONT_ZONE_CONDITION   40
 
 #define LOG_MEMORY_START  100
 #define LOG_LENGTH        5
@@ -277,6 +278,105 @@ void analogZoneTrip( ){
   if( analogRead( ANALOG_ZONE_PIN ) > threshold && !alarm_active ){
     toggleAlarm( );
   }
+}
+
+void setOption( short option ){
+  unsigned int address;
+  unsigned short digits;
+  switch( option ){
+    case 0:
+        // PASSWORD
+        address = PASSWORD;
+        digits = 4;
+      break;
+    case 1:
+        // ADMIN_PASSWORD
+        address = ADMIN_PASSWORD;
+        digits = 4;
+      break;
+    case 2:
+        // LOWER_TIME_BOUND
+        address = LOWER_TIME_BOUND;
+        digits = 2;
+      break;
+    case 3:
+        // UPPER_TIME_BOUND
+        address = UPPER_TIME_BOUND;
+        digits = 2;
+      break;
+    case 4:
+        // DIGITAL_CONDITION
+        address = DIGITAL_CONDITION;
+        digits = 1;
+      break;
+    case 5:
+        // ANALOG_THRESHOLD
+        address = ANALOG_THRESHOLD;
+        digits = 2;
+      break;
+    case 6:
+        // CONT_ZONE_CONDITION
+        address = CONT_ZONE_CONDITION;
+        digits = 1;
+      break;
+    default:
+        return;
+      break;
+  }
+
+  if( digits > 2 ){
+    unsigned int final_value;
+    for(int i = 0; i < 4; i++){
+      int received_value = 0;
+      while( !irrecv.decode(&results) ) { /* Wait for input! */ }
+        switch(results.value)
+        {
+          case 0xFF6897: received_value = 0;      break;
+          case 0xFF30CF: received_value = 1;      break;
+          case 0xFF18E7: received_value = 2;      break;
+          case 0xFFFFFF: received_value = 3;      break;
+          case 0xFF10EF: received_value = 4;      break;
+          case 0xFF38C7: received_value = 5;      break;
+          case 0xFF5AA5: received_value = 6;      break;
+          case 0xFF42BD: received_value = 7;      break;
+          case 0xFF4AB5: received_value = 8;      break;
+          case 0xFF52AD: received_value = 9;      break;
+          case 0xFFB04F: Serial.println("RET");   break;
+          default: i--; break; // Other button press or undefined
+        }
+        final_value *= 10;
+        final_value += received_value;
+    }
+
+    EEPROM.put( address, final_value );
+  } else {
+    unsigned short final_value;
+    for(int i = 0; i < 4; i++){
+      int received_value = 0;
+      while( !irrecv.decode(&results) ) { /* Wait for input! */ }
+        switch(results.value)
+        {
+          case 0xFF6897: received_value = 0;      break;
+          case 0xFF30CF: received_value = 1;      break;
+          case 0xFF18E7: received_value = 2;      break;
+          case 0xFFFFFF: received_value = 3;      break;
+          case 0xFF10EF: received_value = 4;      break;
+          case 0xFF38C7: received_value = 5;      break;
+          case 0xFF5AA5: received_value = 6;      break;
+          case 0xFF42BD: received_value = 7;      break;
+          case 0xFF4AB5: received_value = 8;      break;
+          case 0xFF52AD: received_value = 9;      break;
+          case 0xFFB04F: Serial.println("RET");   break;
+          default: i--; break; // Other button press or undefined
+        }
+        final_value *= 10;
+        final_value += received_value;
+    }
+
+    EEPROM.put( address, final_value );
+  }
+  
+
 }
 
 void setup() {
