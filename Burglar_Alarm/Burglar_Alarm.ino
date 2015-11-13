@@ -110,6 +110,9 @@ void printWithLeadingZero(int val){
 
 void loginMode() {
   int pin_entered = 0;
+  unsigned int password = EEPROM.get( PASSWORD, int );
+  unsigned int admin_password = EEPROM.get( ADMIN_PASSWORD, int );
+
   for(int i = 0; i < 4; i++){
     int received_value = 0;
     while( !irrecv.decode(&results) ) { /* Wait for input! */ }
@@ -140,7 +143,7 @@ void loginMode() {
  */
 void appendLog( unsigned long int time_of_breach, unsigned short int zone ){
 
-  unsigned short int number_of_breaches = EEPROM.read( NUMBER_OF_BREACHES );
+  unsigned short int number_of_breaches = EEPROM.get( NUMBER_OF_BREACHES, short );
   int memory_address = LOG_MEMORY_START + (LOG_LENGTH * number_of_breaches );
 
   // Increase the number of breaches
