@@ -232,6 +232,22 @@ void toggleAlarm( ){
     digitalWrite( ALARM_PIN, LOW );
 }
 
+/**
+ * Trip the entry/exit zone
+ */
+void entryExitZoneTrip( ){
+  unsigned short lower, upper, currentHour;
+  EEPROM.get( LOWER_TIME_BOUND, lower );
+  EEPROM.get( UPPER_TIME_BOUND, upper );
+  currentHour = hour();
+
+  if( !( currentHour <= lower && currentHour >= upper) ){
+    // If current hour is not between the upper and lower bound
+    toggleAlarm( );
+    appendLog( now(), ENTRY_EXIT_ZONE );
+  }
+}
+
 void setup() {
   pinMode(ALARM_PIN, OUTPUT);
   
