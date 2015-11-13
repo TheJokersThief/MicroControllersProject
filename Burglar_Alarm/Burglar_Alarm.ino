@@ -43,7 +43,9 @@
  *
  *  Digital (Zone 1)
  *    20    : trip condition (unsigned short int)
+ *    
  *  Analog  (Zone 2)
+ *    30 - 32 : threshold (unsigned int)
  *
  *  Continuous Monitoring (Zone 3)
  * 100 - 1024 : Logging
@@ -70,6 +72,9 @@
 
  // ~~~~~~~ ANALOG ZONE ~~~~~~~~
 #define ANALOG_ZONE           2
+#define ANALOG_THRESHOLD      30
+#define ANALOG_ZONE_PIN       0
+
 
  // ~~~ CONTINUOUS MON ZONE ~~~~
 #define CONTINUOUS_ZONE       3
@@ -262,6 +267,15 @@ void digitalZoneTrip( ){
       toggleAlarm( );
   }
 
+}
+
+void analogZoneTrip( ){
+  unsigned int threshold;
+  EEPROM.get( ANALOG_THRESHOLD, threshold );
+
+  if( analogRead( ANALOG_ZONE_PIN ) > threshold && !alarm_active ){
+    toggleAlarm( );
+  }
 }
 
 void setup() {
