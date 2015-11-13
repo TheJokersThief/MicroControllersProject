@@ -43,7 +43,12 @@
  *   
  */
 
+#define PASSWORD              0
+#define ADMIN_PASSWORD        2
+#define NUMBER_OF_BREACHES    4
 
+#define LOG_MEMORY_START  100
+#define LOG_LENGTH        5
 
 #define TIME_MSG_LEN  11   // time sync to PC is HEADER followed by Unix time_t as ten ASCII digits
 #define TIME_HEADER  'T'   // Header tag for serial time sync message
@@ -100,6 +105,28 @@ void printWithLeadingZero(int val){
     lcd.print('0');
   }
   lcd.print(val);
+}
+
+/**
+ * Append log to memory
+ * @param time_of_breach Unix timestamp of current time
+ * @param zone           Zone number that was breached
+ */
+void appendLog( unsigned long int time_of_breach, unsigned short int zone ){
+
+  unsigned short int number_of_breaches = EEPROM.read( NUMBER_OF_BREACHES );
+  int memory_address = LOG_MEMORY_START + (LOG_LENGTH * number_of_breaches );
+
+  // Increase the number of breaches
+  number_of_breaches++;
+  EEPROM.write( NUMBER_OF_BREACHES, number_of_breaches );
+
+  // Write our log to EEPROM
+  EEPROM.write( memory_address, time_of_breach );
+  memory_address += sizeof(time_of_breach);
+  EEPROM.write( memory_address, zone );
+
+
 }
 
 void setup() {
