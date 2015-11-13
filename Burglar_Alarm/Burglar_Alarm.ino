@@ -64,6 +64,9 @@ decode_results results;
 // initialize the library with the numbers of the interface pins
 LiquidCrystal lcd(9, 8, 7, 6, 5, 4);
 
+// Used to check if current user is an admin
+unsigned short int is_admin = 0;
+
 // Taken from an example of Time.h, a method to sync time to PC
 // using a Unix time value sent by the PC over serial
 //void syncTime(){
@@ -133,6 +136,13 @@ void loginMode() {
     }
     pin_entered *= 10;
     pin_entered += received_value;
+  }
+
+  if( pin_entered == password ){
+    // disable alarm
+  } else if( pin_entered == admin_password ){
+    is_admin = 1;
+    // disable alarm if running
   }
 }
 
