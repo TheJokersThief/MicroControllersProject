@@ -1,3 +1,4 @@
+#include <EEPROM.h>
 #include <Time.h>  
 #include <IRremote.h>
 #include <LiquidCrystal.h>
