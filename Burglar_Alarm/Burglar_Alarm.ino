@@ -9,8 +9,8 @@
  * 
  * Digital
  * -------
- * 1 (interrupt) : Digital Zone 1 
  * 2 (interrupt) : Entry/Exit Zone 
+ * 3 (interrupt) : Digital Zone 1 
  * 4 : LCD Screen 
  * 5 : LCD Screen
  * 6 : LCD Screen
@@ -62,13 +62,14 @@
 
 // ~~~~~ ENTRY / EXIT ZONE ~~~~~
 #define ENTRY_EXIT_ZONE       0
+#define ENTRY_EXIT_PIN        3
 #define LOWER_TIME_BOUND      5
 #define UPPER_TIME_BOUND      6
 
 // ~~~~~~~ DIGITAL ZONE ~~~~~~~~
 #define DIGITAL_ZONE          1
 #define DIGITAL_CONDITION     20
-#define DIGITAL_ZONE_PIN      1
+#define DIGITAL_ZONE_PIN      2
 
  // ~~~~~~~ ANALOG ZONE ~~~~~~~~
 #define ANALOG_ZONE           2
@@ -279,6 +280,18 @@ void analogZoneTrip( ){
 }
 
 void setup() {
+  TCCR1A = 0;
+  TCCR1B = 0;
+  OCR1A = 15625;
+  TCCR1B |= (1 << WGM12);
+  TCCR1B |= (1 << CS10);
+  TCCR1B |= (1 << CS12);
+  TIMSK1 |= (1 << OCIE1A);
+  sei();
+
+  attachInterrupt( digitalPinToInterrupt(DIGITAL_ZONE_PIN), digitalZoneTrip, CHANGE );
+  attachInterrupt( digitalPinToInterrupt(ENTRY_EXIT_PIN), entryExitZoneTrip, CHANGE );
+
   pinMode(ALARM_PIN, OUTPUT);
   
   Serial.begin(9600);
@@ -293,7 +306,7 @@ void setup() {
 }
 
 void loop() {
-  printTime();
+  // printTime();
   if( irrecv.decode(&results) ) {
     switch(results.value)
     {
@@ -342,3 +355,6 @@ void loop() {
   }
 }
 
+ISR (TIMER1_COMPA_vect){
+  printTime();
+}
