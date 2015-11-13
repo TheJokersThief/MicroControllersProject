@@ -42,7 +42,7 @@
  *    6     : upper-bound hour (unsigned short int)
  *
  *  Digital (Zone 1)
- *
+ *    20    : trip condition (unsigned short int)
  *  Analog  (Zone 2)
  *
  *  Continuous Monitoring (Zone 3)
@@ -65,6 +65,8 @@
 
 // ~~~~~~~ DIGITAL ZONE ~~~~~~~~
 #define DIGITAL_ZONE          1
+#define DIGITAL_CONDITION     20
+#define DIGITAL_ZONE_PIN      1
 
  // ~~~~~~~ ANALOG ZONE ~~~~~~~~
 #define ANALOG_ZONE           2
@@ -246,6 +248,20 @@ void entryExitZoneTrip( ){
     toggleAlarm( );
     appendLog( now(), ENTRY_EXIT_ZONE );
   }
+}
+
+void digitalZoneTrip( ){
+  unsigned short trip_condition;
+  EEPROM.get( DIGITAL_CONDITION, trip_condition );
+
+  if( trip_condition ){
+    if( digitalRead( DIGITAL_ZONE_PIN ) == HIGH && !alarm_active )
+      toggleAlarm( );
+  } else {
+    if( digitalRead( DIGITAL_ZONE_PIN ) == LOW && !alarm_active )
+      toggleAlarm( );
+  }
+
 }
 
 void setup() {
