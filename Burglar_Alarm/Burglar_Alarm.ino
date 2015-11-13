@@ -155,38 +155,42 @@ void printWithLeadingZero(int val){
 }
 
 int loginMode() {
-  int pin_entered = 0;
-  unsigned int password, admin_password;
-  EEPROM.get( PASSWORD, password );
-  EEPROM.get( ADMIN_PASSWORD, admin_password );
+  if( !is_user_logged_in ){
+    // if user is already logged in, bypass login
 
-  for(int i = 0; i < 4; i++){
-    int received_value = 0;
-    while( !irrecv.decode(&results) ) { /* Wait for input! */ }
-    switch(results.value)
-    {
-      case 0xFF6897: received_value = 0;      break;
-      case 0xFF30CF: received_value = 1;      break;
-      case 0xFF18E7: received_value = 2;      break;
-      case 0xFFFFFF: received_value = 3;      break;
-      case 0xFF10EF: received_value = 4;      break;
-      case 0xFF38C7: received_value = 5;      break;
-      case 0xFF5AA5: received_value = 6;      break;
-      case 0xFF42BD: received_value = 7;      break;
-      case 0xFF4AB5: received_value = 8;      break;
-      case 0xFF52AD: received_value = 9;      break;
-      case 0xFFB04F: Serial.println("RET");   break;
-      default: i--; break; // Other button press or undefined
+    int pin_entered = 0;
+    unsigned int password, admin_password;
+    EEPROM.get( PASSWORD, password );
+    EEPROM.get( ADMIN_PASSWORD, admin_password );
+
+    for(int i = 0; i < 4; i++){
+      int received_value = 0;
+      while( !irrecv.decode(&results) ) { /* Wait for input! */ }
+      switch(results.value)
+      {
+        case 0xFF6897: received_value = 0;      break;
+        case 0xFF30CF: received_value = 1;      break;
+        case 0xFF18E7: received_value = 2;      break;
+        case 0xFFFFFF: received_value = 3;      break;
+        case 0xFF10EF: received_value = 4;      break;
+        case 0xFF38C7: received_value = 5;      break;
+        case 0xFF5AA5: received_value = 6;      break;
+        case 0xFF42BD: received_value = 7;      break;
+        case 0xFF4AB5: received_value = 8;      break;
+        case 0xFF52AD: received_value = 9;      break;
+        case 0xFFB04F: Serial.println("RET");   break;
+        default: i--; break; // Other button press or undefined
+      }
+      pin_entered *= 10;
+      pin_entered += received_value;
     }
-    pin_entered *= 10;
-    pin_entered += received_value;
-  }
 
-  if( pin_entered == password ){
-    is_user_logged_in = 1;
-  } else if( pin_entered == admin_password ){
-    is_admin = 1;
-    is_user_logged_in = 1;
+    if( pin_entered == password ){
+      is_user_logged_in = 1;
+    } else if( pin_entered == admin_password ){
+      is_admin = 1;
+      is_user_logged_in = 1;
+    }
   }
 
   return is_user_logged_in;
