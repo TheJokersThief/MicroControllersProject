@@ -121,7 +121,7 @@ void printWithLeadingZero(int val){
   lcd.print(val);
 }
 
-void loginMode() {
+int loginMode() {
   int pin_entered = 0;
   unsigned int password, admin_password;
   EEPROM.get( PASSWORD, password );
@@ -156,11 +156,7 @@ void loginMode() {
     is_user_logged_in = 1;
   }
 
-  if( is_user_logged_in ){
-    // Disable alarm
-    digitalWrite( ALARM_PIN, LOW );
-    alarm_active = 0;
-  }
+  return is_user_logged_in;
 }
 
 /**
@@ -241,7 +237,12 @@ void loop() {
             toggleAlarmSet( );
         break;
       case 0xFF629D: Serial.println("MODE");        break;
-      case 0xFFE21D: Serial.println("MUTE");        break;
+      case 0xFFE21D:
+          // MUTE
+          if( alarm_active && loginMode() ){
+            toggleAlarm();
+          }
+        break;
       case 0xFF22DD: Serial.println("PREV");        break;
       case 0xFF02FD: Serial.println("NEXT");        break;
       case 0xFFC23D: Serial.println("PLAY/PAUSE");  break;
