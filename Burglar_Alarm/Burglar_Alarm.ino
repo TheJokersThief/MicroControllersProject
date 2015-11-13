@@ -10,7 +10,7 @@
  * Digital
  * -------
  * 1 (interrupt) : Digital Zone 1 
- * 
+ * 2 (interrupt) : Entry/Exit Zone 
  * 4 : LCD Screen 
  * 5 : LCD Screen
  * 6 : LCD Screen
@@ -36,6 +36,16 @@
  * 0 - 1 : password (unsigned int)
  * 2 - 3 : admin password (unsigned int)
  * 4     : number of breaches (unsigned short int)
+ *
+ *  Entry/Exit (Zone 0)
+ *    5     : lower-bound hour (unsigned short int)
+ *    6     : upper-bound hour (unsigned short int)
+ *
+ *  Digital (Zone 1)
+ *
+ *  Analog  (Zone 2)
+ *
+ *  Continuous Monitoring (Zone 3)
  * 100 - 1024 : Logging
  *   Bit Mapping (5 bytes each):
  *   0 - 3 : time (unsigned long int)
@@ -47,6 +57,20 @@
 #define PASSWORD              0
 #define ADMIN_PASSWORD        2
 #define NUMBER_OF_BREACHES    4
+
+// ~~~~~ ENTRY / EXIT ZONE ~~~~~
+#define ENTRY_EXIT_ZONE       0
+#define LOWER_TIME_BOUND      5
+#define UPPER_TIME_BOUND      6
+
+// ~~~~~~~ DIGITAL ZONE ~~~~~~~~
+#define DIGITAL_ZONE          1
+
+ // ~~~~~~~ ANALOG ZONE ~~~~~~~~
+#define ANALOG_ZONE           2
+
+ // ~~~ CONTINUOUS MON ZONE ~~~~
+#define CONTINUOUS_ZONE       3
 
 #define LOG_MEMORY_START  100
 #define LOG_LENGTH        5
