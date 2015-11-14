@@ -9,8 +9,9 @@
  * 
  * Digital
  * -------
- * 2 (interrupt) : Entry/Exit Zone 
- * 3 (interrupt) : Digital Zone 1 
+ * 1 : Entry/Exit Zone
+ * 2 (interrupt) : Digital Zone 
+ * 3 (interrupt) : Continuous Zone 
  * 4 : LCD Screen 
  * 5 : LCD Screen
  * 6 : LCD Screen
@@ -47,8 +48,6 @@
  *  Analog  (Zone 2)
  *    30 - 32 : threshold (unsigned int)
  *
- *  Continuous Monitoring (Zone 3)
- *    40      : condition (unsigned short)
  * 100 - 1024 : Logging
  *   Bit Mapping (5 bytes each):
  *   0 - 3 : time (unsigned long int)
@@ -63,7 +62,7 @@
 
 // ~~~~~ ENTRY / EXIT ZONE ~~~~~
 #define ENTRY_EXIT_ZONE       0
-#define ENTRY_EXIT_PIN        3
+#define ENTRY_EXIT_PIN        1
 #define LOWER_TIME_BOUND      5     // Hour (2 digits max)
 #define UPPER_TIME_BOUND      6     // Hour (2 digits max)
 
@@ -80,7 +79,7 @@
 
  // ~~~ CONTINUOUS MON ZONE ~~~~
 #define CONTINUOUS_ZONE       3
-#define CONT_ZONE_CONDITION   40    // High to low (1) ; low to high (0)
+#define CONTINUOUS_ZONE_PIN   2
 
 #define LOG_MEMORY_START  100
 #define LOG_LENGTH        5
@@ -305,6 +304,14 @@ void digitalZoneTrip( ){
 }
 
 /**
+ * Trip the continuous zone
+ */
+void contZoneTrip( ){
+  toggleAlarm( );
+  appendLog( now(), CONTINUOUS_ZONE );
+}
+
+/**
  * Trip the analog zone if higher than threshold
  */
 void analogZoneTrip( ){
@@ -355,11 +362,6 @@ void setOption( short option ){
         // ANALOG_THRESHOLD
         address = ANALOG_THRESHOLD;
         digits = 2;
-      break;
-    case 6:
-        // CONT_ZONE_CONDITION
-        address = CONT_ZONE_CONDITION;
-        digits = 1;
       break;
     default:
         return;
@@ -433,7 +435,8 @@ void setup() {
   TIMSK1 |= (1 << OCIE1A);
   sei();
 
-  attachInterrupt( digitalPinToInterrupt(DIGITAL_ZONE_PIN), digitalZoneTrip, CHANGE );
+  attachInterrupt( digitalPinToInterrupt(DIGITAL_ZONE_PIN), digitalZoneTrip, CHANGE  );
+  attachInterrupt( digitalPinToInterrupt(CONTINUOUS_ZONE_PIN), contZoneTrip, FALLING );
 
   pinMode(ALARM_PIN, OUTPUT);
   
