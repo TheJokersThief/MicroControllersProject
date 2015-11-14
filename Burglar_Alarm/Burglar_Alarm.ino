@@ -155,15 +155,28 @@ void printWithLeadingZero(int val){
   lcd.print(val);
 }
 
+/**
+ * Attempt to log in a user, prompting
+ *   them for a user or admin password
+ * @return 1 if user logged in ; 0 otherwise
+ */
 int loginMode() {
   if( !is_user_logged_in && !is_admin ){
     // if admin is already logged in, bypass login
+
+    lcd.clear();
+    if( is_user_logged_in && !is_admin ){
+      lcd.print( "Enter admin pin");
+    } else {
+      lcd.print( "Enter 4 digit pin");
+    }
 
     int pin_entered = 0;
     unsigned int password, admin_password;
     EEPROM.get( PASSWORD, password );
     EEPROM.get( ADMIN_PASSWORD, admin_password );
 
+    lcd.setCursor(0, 1);
     for(int i = 0; i < 4; i++){
       int received_value = 0;
       while( !irrecv.decode(&results) ) { /* Wait for input! */ }
@@ -184,6 +197,7 @@ int loginMode() {
       }
       pin_entered *= 10;
       pin_entered += received_value;
+      lcd.print('*');
     }
 
     if( pin_entered == password ){
@@ -228,6 +242,8 @@ void exitAdmin( ){
 
 void logout( ){
   is_user_logged_in = 0;
+  lcd.clear();
+  lcd.print("Logged out");
 }
 
 void toggleAlarmSet( ){
@@ -240,10 +256,14 @@ void toggleAlarmSet( ){
 void toggleAlarm( ){
   alarm_active = !alarm_active;
 
-  if( alarm_active )
+  lcd.clear();
+  if( alarm_active ){
+    lcd.print( "ALARM ACTIVE     ");
     digitalWrite( ALARM_PIN, HIGH );
-  else 
+  } else {
+    lcd.print( "ALARM DEACTIVATED");
     digitalWrite( ALARM_PIN, LOW );
+  }
 }
 
 /**
@@ -257,34 +277,51 @@ void entryExitZoneTrip( ){
 
   if( !( currentHour <= lower && currentHour >= upper) ){
     // If current hour is not between the upper and lower bound
+    // then activate the alarm
     toggleAlarm( );
     appendLog( now(), ENTRY_EXIT_ZONE );
   }
 }
 
+/**
+ * Trip the digital zone if conditions are met
+ */
 void digitalZoneTrip( ){
   unsigned short trip_condition;
   EEPROM.get( DIGITAL_CONDITION, trip_condition );
 
   if( trip_condition ){
-    if( digitalRead( DIGITAL_ZONE_PIN ) == HIGH && !alarm_active )
+    if( digitalRead( DIGITAL_ZONE_PIN ) == HIGH && !alarm_active ){
       toggleAlarm( );
+      appendLog( now(), DIGITAL_ZONE );
+    }
   } else {
-    if( digitalRead( DIGITAL_ZONE_PIN ) == LOW && !alarm_active )
+    if( digitalRead( DIGITAL_ZONE_PIN ) == LOW && !alarm_active ){
       toggleAlarm( );
+      appendLog( now(), DIGITAL_ZONE );
+    }
   }
 
 }
 
+/**
+ * Trip the analog zone if higher than threshold
+ */
 void analogZoneTrip( ){
   unsigned int threshold;
   EEPROM.get( ANALOG_THRESHOLD, threshold );
 
   if( analogRead( ANALOG_ZONE_PIN ) > threshold && !alarm_active ){
     toggleAlarm( );
+    appendLog( now(), ANALOG_ZONE );
   }
 }
 
+/**
+ * Allows users to set permanent option 
+ *   values (stored in EEPROM)
+ * @param option Option number from IR Remote
+ */
 void setOption( short option ){
   unsigned int address;
   unsigned short digits;
@@ -330,6 +367,7 @@ void setOption( short option ){
   }
 
   if( digits > 2 ){
+    // If there are more than 2 digits, we'll need an int
     unsigned int final_value;
     for(int i = 0; i < digits; i++){
       int received_value = 0;
@@ -355,6 +393,7 @@ void setOption( short option ){
 
     EEPROM.put( address, final_value );
   } else {
+    // If there are less than 2 digits, we can use a short
     unsigned short final_value;
     for(int i = 0; i < digits; i++){
       int received_value = 0;
