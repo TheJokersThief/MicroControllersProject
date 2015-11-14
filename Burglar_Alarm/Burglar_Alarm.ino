@@ -289,6 +289,8 @@ void digitalZoneTrip( ){
       toggleAlarm( );
   }
 
+  appendLog( now(), DIGITAL_ZONE );
+
 }
 
 void analogZoneTrip( ){
@@ -297,6 +299,7 @@ void analogZoneTrip( ){
 
   if( analogRead( ANALOG_ZONE_PIN ) > threshold && !alarm_active ){
     toggleAlarm( );
+    appendLog( now(), ANALOG_ZONE );
   }
 }
 
