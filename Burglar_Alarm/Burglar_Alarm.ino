@@ -270,7 +270,7 @@ void toggleAlarm( ){
  * Trip the entry/exit zone
  */
 void entryExitZoneTrip( ){
-  unsigned short lower, upper, currentHour;
+  volatile unsigned short lower, upper, currentHour;
   EEPROM.get( LOWER_TIME_BOUND, lower );
   EEPROM.get( UPPER_TIME_BOUND, upper );
   currentHour = hour();
@@ -287,7 +287,7 @@ void entryExitZoneTrip( ){
  * Trip the digital zone if conditions are met
  */
 void digitalZoneTrip( ){
-  unsigned short trip_condition;
+  volatile unsigned short trip_condition;
   EEPROM.get( DIGITAL_CONDITION, trip_condition );
 
   if( trip_condition ){
