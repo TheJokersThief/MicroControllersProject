@@ -434,7 +434,6 @@ void setup() {
   sei();
 
   attachInterrupt( digitalPinToInterrupt(DIGITAL_ZONE_PIN), digitalZoneTrip, CHANGE );
-  attachInterrupt( digitalPinToInterrupt(ENTRY_EXIT_PIN), entryExitZoneTrip, CHANGE );
 
   pinMode(ALARM_PIN, OUTPUT);
   
@@ -497,6 +496,21 @@ void loop() {
 
     irrecv.resume(); // Receive the next value
   }
+
+  if( digitalRead(ENTRY_EXIT_PIN) == HIGH ){
+    unsigned short lower, upper, currentHour;
+    EEPROM.get( LOWER_TIME_BOUND, lower );
+    EEPROM.get( UPPER_TIME_BOUND, upper );
+    currentHour = hour();
+
+    if( !alarm_active && !( currentHour <= lower && currentHour >= upper) ){
+      // If current hour is not between the upper and lower bound
+      // then activate the alarm
+      toggleAlarm( );
+      appendLog( now(), ENTRY_EXIT_ZONE );
+    }
+  }
+
 }
 
 ISR (TIMER1_COMPA_vect){
