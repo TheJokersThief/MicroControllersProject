@@ -435,11 +435,14 @@ void setup() {
   TIMSK1 |= (1 << OCIE1A);
   sei();
 
+  pinMode(ALARM_PIN, OUTPUT);
+  pinMode(CONTINUOUS_ZONE_PIN, INPUT);
+  pinMode(DIGITAL_ZONE_PIN, INPUT);
+  pinMode(ENTRY_EXIT_PIN, INPUT);
+
   attachInterrupt( digitalPinToInterrupt(DIGITAL_ZONE_PIN), digitalZoneTrip, CHANGE  );
   attachInterrupt( digitalPinToInterrupt(CONTINUOUS_ZONE_PIN), contZoneTrip, FALLING );
 
-  pinMode(ALARM_PIN, OUTPUT);
-  
   Serial.begin(9600);
 
   setTime(1262347200);
@@ -482,8 +485,11 @@ void loop() {
 
       case 0xFFB04F:
           // RET
-          if( is_admin )
+          if( is_admin ){
             exitAdmin( );
+          } else if( is_user_logged_in ){
+            logout();
+          }
         break;
       case 0xFF30CF: Serial.println("1");           break;
       case 0xFF18E7: Serial.println("2");           break;
