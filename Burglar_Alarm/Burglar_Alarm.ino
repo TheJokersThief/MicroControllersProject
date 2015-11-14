@@ -105,7 +105,7 @@ unsigned short is_admin = 0;
 unsigned short alarm_set = 0;
 
 // 0 alarm is idle ; 1 alarm is ringing
-unsigned short alarm_active = 0;
+volatile unsigned short alarm_active = 0;
 
 // 0 not logged in ; 1 logged in 
 unsigned short is_user_logged_in = 0;
