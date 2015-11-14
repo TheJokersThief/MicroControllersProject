@@ -35,50 +35,52 @@
  * --------------
  * 0 - 1 : password (unsigned int)
  * 2 - 3 : admin password (unsigned int)
- * 4     : number of breaches (unsigned short int)
+ * 4     : number of breaches (unsigned short)
  *
  *  Entry/Exit (Zone 0)
- *    5     : lower-bound hour (unsigned short int)
- *    6     : upper-bound hour (unsigned short int)
+ *    5     : lower-bound hour (unsigned short)
+ *    6     : upper-bound hour (unsigned short)
  *
  *  Digital (Zone 1)
- *    20    : trip condition (unsigned short int)
+ *    20    : trip condition (unsigned short)
  *    
  *  Analog  (Zone 2)
  *    30 - 32 : threshold (unsigned int)
  *
  *  Continuous Monitoring (Zone 3)
+ *    40      : condition (unsigned short)
  * 100 - 1024 : Logging
  *   Bit Mapping (5 bytes each):
  *   0 - 3 : time (unsigned long int)
- *   4     : zone (unsigned short int)
+ *   4     : zone (unsigned short)
  *   
  *   
  */
 
-#define PASSWORD              0
-#define ADMIN_PASSWORD        2
+#define PASSWORD              0     // 4 digit pin
+#define ADMIN_PASSWORD        2     // 4 digit pin
 #define NUMBER_OF_BREACHES    4
 
 // ~~~~~ ENTRY / EXIT ZONE ~~~~~
 #define ENTRY_EXIT_ZONE       0
 #define ENTRY_EXIT_PIN        3
-#define LOWER_TIME_BOUND      5
-#define UPPER_TIME_BOUND      6
+#define LOWER_TIME_BOUND      5     // Hour (2 digits max)
+#define UPPER_TIME_BOUND      6     // Hour (2 digits max)
 
 // ~~~~~~~ DIGITAL ZONE ~~~~~~~~
 #define DIGITAL_ZONE          1
-#define DIGITAL_CONDITION     20
+#define DIGITAL_CONDITION     20    // HIGH (1) or LOW (0)
 #define DIGITAL_ZONE_PIN      2
 
  // ~~~~~~~ ANALOG ZONE ~~~~~~~~
 #define ANALOG_ZONE           2
-#define ANALOG_THRESHOLD      30
+#define ANALOG_THRESHOLD      30    // short between 0 - 255
 #define ANALOG_ZONE_PIN       0
 
 
  // ~~~ CONTINUOUS MON ZONE ~~~~
 #define CONTINUOUS_ZONE       3
+#define CONT_ZONE_CONDITION   40    // High to low (1) ; low to high (0)
 
 #define LOG_MEMORY_START  100
 #define LOG_LENGTH        5
@@ -97,16 +99,16 @@ decode_results results;
 LiquidCrystal lcd(9, 8, 7, 6, 5, 4);
 
 // Used to check if current user is an admin
-unsigned short int is_admin = 0;
+unsigned short is_admin = 0;
 
 // 0 is disabled ; 1 is enabled
-unsigned short int alarm_set = 0;
+unsigned short alarm_set = 0;
 
 // 0 alarm is idle ; 1 alarm is ringing
-unsigned short int alarm_active = 0;
+unsigned short alarm_active = 0;
 
 // 0 not logged in ; 1 logged in 
-unsigned short int is_user_logged_in = 0;
+unsigned short is_user_logged_in = 0;
 
 
 // Taken from an example of Time.h, a method to sync time to PC
@@ -154,38 +156,42 @@ void printWithLeadingZero(int val){
 }
 
 int loginMode() {
-  int pin_entered = 0;
-  unsigned int password, admin_password;
-  EEPROM.get( PASSWORD, password );
-  EEPROM.get( ADMIN_PASSWORD, admin_password );
+  if( !is_user_logged_in && !is_admin ){
+    // if admin is already logged in, bypass login
 
-  for(int i = 0; i < 4; i++){
-    int received_value = 0;
-    while( !irrecv.decode(&results) ) { /* Wait for input! */ }
-    switch(results.value)
-    {
-      case 0xFF6897: received_value = 0;      break;
-      case 0xFF30CF: received_value = 1;      break;
-      case 0xFF18E7: received_value = 2;      break;
-      case 0xFFFFFF: received_value = 3;      break;
-      case 0xFF10EF: received_value = 4;      break;
-      case 0xFF38C7: received_value = 5;      break;
-      case 0xFF5AA5: received_value = 6;      break;
-      case 0xFF42BD: received_value = 7;      break;
-      case 0xFF4AB5: received_value = 8;      break;
-      case 0xFF52AD: received_value = 9;      break;
-      case 0xFFB04F: Serial.println("RET");   break;
-      default: i--; break; // Other button press or undefined
+    int pin_entered = 0;
+    unsigned int password, admin_password;
+    EEPROM.get( PASSWORD, password );
+    EEPROM.get( ADMIN_PASSWORD, admin_password );
+
+    for(int i = 0; i < 4; i++){
+      int received_value = 0;
+      while( !irrecv.decode(&results) ) { /* Wait for input! */ }
+      switch(results.value)
+      {
+        case 0xFF6897: received_value = 0;      break;
+        case 0xFF30CF: received_value = 1;      break;
+        case 0xFF18E7: received_value = 2;      break;
+        case 0xFFFFFF: received_value = 3;      break;
+        case 0xFF10EF: received_value = 4;      break;
+        case 0xFF38C7: received_value = 5;      break;
+        case 0xFF5AA5: received_value = 6;      break;
+        case 0xFF42BD: received_value = 7;      break;
+        case 0xFF4AB5: received_value = 8;      break;
+        case 0xFF52AD: received_value = 9;      break;
+        case 0xFFB04F: Serial.println("RET");   break;
+        default: i--; break; // Other button press or undefined
+      }
+      pin_entered *= 10;
+      pin_entered += received_value;
     }
-    pin_entered *= 10;
-    pin_entered += received_value;
-  }
 
-  if( pin_entered == password ){
-    is_user_logged_in = 1;
-  } else if( pin_entered == admin_password ){
-    is_admin = 1;
-    is_user_logged_in = 1;
+    if( pin_entered == password ){
+      is_user_logged_in = 1;
+    } else if( pin_entered == admin_password ){
+      is_admin = 1;
+      is_user_logged_in = 1;
+    }
   }
 
   return is_user_logged_in;
@@ -196,9 +202,9 @@ int loginMode() {
  * @param time_of_breach Unix timestamp of current time
  * @param zone           Zone number that was breached
  */
-void appendLog( unsigned long int time_of_breach, unsigned short int zone ){
+void appendLog( unsigned long int time_of_breach, unsigned short zone ){
 
-  unsigned short int number_of_breaches;
+  unsigned short number_of_breaches;
   EEPROM.get( NUMBER_OF_BREACHES, number_of_breaches );
   int memory_address = LOG_MEMORY_START + (LOG_LENGTH * number_of_breaches );
 
@@ -277,6 +283,105 @@ void analogZoneTrip( ){
   if( analogRead( ANALOG_ZONE_PIN ) > threshold && !alarm_active ){
     toggleAlarm( );
   }
+}
+
+void setOption( short option ){
+  unsigned int address;
+  unsigned short digits;
+  switch( option ){
+    case 0:
+        // PASSWORD
+        address = PASSWORD;
+        digits = 4;
+      break;
+    case 1:
+        // ADMIN_PASSWORD
+        address = ADMIN_PASSWORD;
+        digits = 4;
+      break;
+    case 2:
+        // LOWER_TIME_BOUND
+        address = LOWER_TIME_BOUND;
+        digits = 2;
+      break;
+    case 3:
+        // UPPER_TIME_BOUND
+        address = UPPER_TIME_BOUND;
+        digits = 2;
+      break;
+    case 4:
+        // DIGITAL_CONDITION
+        address = DIGITAL_CONDITION;
+        digits = 1;
+      break;
+    case 5:
+        // ANALOG_THRESHOLD
+        address = ANALOG_THRESHOLD;
+        digits = 2;
+      break;
+    case 6:
+        // CONT_ZONE_CONDITION
+        address = CONT_ZONE_CONDITION;
+        digits = 1;
+      break;
+    default:
+        return;
+      break;
+  }
+
+  if( digits > 2 ){
+    unsigned int final_value;
+    for(int i = 0; i < digits; i++){
+      int received_value = 0;
+      while( !irrecv.decode(&results) ) { /* Wait for input! */ }
+        switch(results.value)
+        {
+          case 0xFF6897: received_value = 0;      break;
+          case 0xFF30CF: received_value = 1;      break;
+          case 0xFF18E7: received_value = 2;      break;
+          case 0xFFFFFF: received_value = 3;      break;
+          case 0xFF10EF: received_value = 4;      break;
+          case 0xFF38C7: received_value = 5;      break;
+          case 0xFF5AA5: received_value = 6;      break;
+          case 0xFF42BD: received_value = 7;      break;
+          case 0xFF4AB5: received_value = 8;      break;
+          case 0xFF52AD: received_value = 9;      break;
+          case 0xFFB04F: Serial.println("RET");   break;
+          default: i--; break; // Other button press or undefined
+        }
+        final_value *= 10;
+        final_value += received_value;
+    }
+
+    EEPROM.put( address, final_value );
+  } else {
+    unsigned short final_value;
+    for(int i = 0; i < digits; i++){
+      int received_value = 0;
+      while( !irrecv.decode(&results) ) { /* Wait for input! */ }
+        switch(results.value)
+        {
+          case 0xFF6897: received_value = 0;      break;
+          case 0xFF30CF: received_value = 1;      break;
+          case 0xFF18E7: received_value = 2;      break;
+          case 0xFFFFFF: received_value = 3;      break;
+          case 0xFF10EF: received_value = 4;      break;
+          case 0xFF38C7: received_value = 5;      break;
+          case 0xFF5AA5: received_value = 6;      break;
+          case 0xFF42BD: received_value = 7;      break;
+          case 0xFF4AB5: received_value = 8;      break;
+          case 0xFF52AD: received_value = 9;      break;
+          case 0xFFB04F: Serial.println("RET");   break;
+          default: i--; break; // Other button press or undefined
+        }
+        final_value *= 10;
+        final_value += received_value;
+    }
+
+    EEPROM.put( address, final_value );
+  }
+  
+
 }
 
 void setup() {
