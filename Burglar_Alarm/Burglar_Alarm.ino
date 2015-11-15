@@ -161,6 +161,7 @@ void printWithLeadingZero(int val){
  */
 int loginMode() {
   if( !is_user_logged_in && !is_admin ){
+  if( !is_user_logged_in || !is_admin ){
     // if admin is already logged in, bypass login
 
     lcd.clear();
