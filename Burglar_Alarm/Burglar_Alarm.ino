@@ -37,10 +37,11 @@
  * 0 - 1 : password (unsigned int)
  * 2 - 3 : admin password (unsigned int)
  * 4     : number of breaches (unsigned short)
+ * 5 - 7 : first-time settings ("set" or anything else)
  *
  *  Entry/Exit (Zone 0)
- *    5     : lower-bound hour (unsigned short)
- *    6     : upper-bound hour (unsigned short)
+ *    15     : lower-bound hour (unsigned short)
+ *    16     : upper-bound hour (unsigned short)
  *
  *  Digital (Zone 1)
  *    20    : trip condition (unsigned short)
@@ -59,12 +60,13 @@
 #define PASSWORD              0     // 4 digit pin
 #define ADMIN_PASSWORD        2     // 4 digit pin
 #define NUMBER_OF_BREACHES    4
+#define FIRST_TIME_SET        5
 
 // ~~~~~ ENTRY / EXIT ZONE ~~~~~
 #define ENTRY_EXIT_ZONE       0
 #define ENTRY_EXIT_PIN        1
-#define LOWER_TIME_BOUND      5     // Hour (2 digits max)
-#define UPPER_TIME_BOUND      6     // Hour (2 digits max)
+#define LOWER_TIME_BOUND      15     // Hour (2 digits max)
+#define UPPER_TIME_BOUND      16     // Hour (2 digits max)
 
 // ~~~~~~~ DIGITAL ZONE ~~~~~~~~
 #define DIGITAL_ZONE          1
@@ -443,31 +445,24 @@ void setOption( short option ){
 }
 
 void defaults(){
-  unsigned int pw, aPw;
-  EEPROM.get( PASSWORD, pw );
-  if(pw == 0){
-    EEPROM.write( PASSWORD, 1234 );
-  }
+  unsigned int password = 1234, 
+               admin_password = 5678, 
+               analog_threshold = 100;
 
-  EEPROM.get( ADMIN_PASSWORD, aPw);
-  if(aPw == 0){
-    EEPROM.write( ADMIN_PASSWORD, 5678 );
-  }
+  unsigned short number_breaches = 0,
+                 lower_bound_hour = 20,
+                 upper_bound_hour = 22,
+                 digital_trip_condition = 1;
 
-  unsigned short low, high, digitalCondition, analogTreshold;
+  char first_time[] = "SET";
+  EEPROM.put( FIRST_TIME_SET, first_time );
+  EEPROM.put( PASSWORD, password );
+  EEPROM.put( ADMIN_PASSWORD, admin_password );
+  EEPROM.put( ANALOG_THRESHOLD, analog_threshold );
 
-  EEPROM.get( LOWER_TIME_BOUND,  low  );
-  if(low == 0){
-    EEPROM.write( LOWER_TIME_BOUND, 5 );
-  }  
-  EEPROM.get( UPPER_TIME_BOUND,  high );
-  if(high == 0){
-    EEPROM.write( UPPER_TIME_BOUND, 6 );
-  }  
-  EEPROM.get( ANALOG_THRESHOLD,  analogTreshold );
-  if(analogTreshold == 0){
-    EEPROM.write( ANALOG_THRESHOLD, 512 );
-  }  
+  EEPROM.put( LOWER_TIME_BOUND, lower_bound_hour );
+  EEPROM.put( UPPER_TIME_BOUND, upper_bound_hour );
+  EEPROM.put( DIGITAL_CONDITION, digital_trip_condition );
 }
 
 void setup() {
@@ -481,7 +476,13 @@ void setup() {
   // TIMSK1 |= (1 << OCIE1A);
   sei();
 
-  detaults();
+  char first_time[] = "SET";
+
+  EEPROM.get( FIRST_TIME_SET, first_time );
+  
+  if( first_time != "SET" ){
+    defaults();
+  }
 
   pinMode(ALARM_PIN, OUTPUT);
   pinMode(CONTINUOUS_ZONE_PIN, INPUT);
@@ -574,3 +575,8 @@ void loop() {
 ISR (TIMER1_COMPA_vect){
 //  printTime();
 }
+
+
+
+
+
