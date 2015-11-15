@@ -440,18 +440,19 @@ void setOption( short option ){
 
     EEPROM.put( address, final_value );
   }
-  
-
 }
 
+
+
 void setup() {
-  TCCR1A = 0;
-  TCCR1B = 0;
-  OCR1A = 15625;
-  TCCR1B |= (1 << WGM12);
-  TCCR1B |= (1 << CS10);
-  TCCR1B |= (1 << CS12);
-  TIMSK1 |= (1 << OCIE1A);
+  // Interrupts once per second
+  // TCCR1A = 0;
+  // TCCR1B = 0;
+  // OCR1A = 15625;
+  // TCCR1B |= (1 << WGM12);
+  // TCCR1B |= (1 << CS10);
+  // TCCR1B |= (1 << CS12);
+  // TIMSK1 |= (1 << OCIE1A);
   sei();
 
   pinMode(ALARM_PIN, OUTPUT);
