@@ -160,7 +160,8 @@ void printWithLeadingZero(int val){
  * @return 1 if user logged in ; 0 otherwise
  */
 int loginMode() {
-  if( !is_user_logged_in && !is_admin ){
+  lcd.clear();
+  lcd.print( "Login Mode");
   if( !is_user_logged_in || !is_admin ){
     // if admin is already logged in, bypass login
 
@@ -170,7 +171,8 @@ int loginMode() {
     } else {
       lcd.print( "Enter 4 digit pin");
     }
-
+    delay(50);
+    
     int pin_entered = 0;
     unsigned int password, admin_password;
     EEPROM.get( PASSWORD, password );
@@ -206,14 +208,24 @@ int loginMode() {
       irrecv.resume();
     }
 
-    if( pin_entered == password ){
+
+    lcd.setCursor(0,1);
+    if( !is_user_logged_in && pin_entered == password ){
       is_user_logged_in = 1;
+      lcd.print( "LOGGED IN" );
     } else if( pin_entered == admin_password ){
       is_admin = 1;
       is_user_logged_in = 1;
+      lcd.print( "LOGGED IN" );
+    } else{
+      lcd.print( "FAILED LOGIN" );
     }
+    delay(1500);
+  } else{
+    lcd.print("You are admin");
   }
-
+  lcd.clear();
+  
   return is_user_logged_in;
 }
 
@@ -462,7 +474,6 @@ void setup() {
 }
 
 void loop() {
-  // printTime();
   if( irrecv.decode(&results) ) {
     switch(results.value)
     {
