@@ -511,6 +511,8 @@ void loop() {
     }
 
     irrecv.resume(); // Receive the next value
+  } else {
+      printTime();
   }
 
   if( digitalRead(ENTRY_EXIT_PIN) == HIGH ){
@@ -530,5 +532,5 @@ void loop() {
 }
 
 ISR (TIMER1_COMPA_vect){
-  printTime();
+//  printTime();
 }
