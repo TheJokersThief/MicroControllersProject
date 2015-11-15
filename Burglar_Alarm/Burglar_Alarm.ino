@@ -179,6 +179,7 @@ int loginMode() {
     lcd.setCursor(0, 1);
     for(int i = 0; i < 4; i++){
       int received_value = 0;
+      irrecv.resume();
       while( !irrecv.decode(&results) ) { /* Wait for input! */ }
       switch(results.value)
       {
@@ -195,9 +196,14 @@ int loginMode() {
         case 0xFFB04F: Serial.println("RET");   break;
         default: i--; break; // Other button press or undefined
       }
+      
       pin_entered *= 10;
       pin_entered += received_value;
       lcd.print('*');
+
+      // Minor delay to prevent debouncing "0"s
+      delay(50);
+      irrecv.resume();
     }
 
     if( pin_entered == password ){
