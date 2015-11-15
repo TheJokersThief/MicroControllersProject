@@ -442,7 +442,33 @@ void setOption( short option ){
   }
 }
 
+void defaults(){
+  unsigned int pw, aPw;
+  EEPROM.get( PASSWORD, pw );
+  if(pw == 0){
+    EEPROM.write( PASSWORD, 1234 );
+  }
 
+  EEPROM.get( ADMIN_PASSWORD, aPw);
+  if(aPw == 0){
+    EEPROM.write( ADMIN_PASSWORD, 5678 );
+  }
+
+  unsigned short low, high, digitalCondition, analogTreshold;
+
+  EEPROM.get( LOWER_TIME_BOUND,  low  );
+  if(low == 0){
+    EEPROM.write( LOWER_TIME_BOUND, 5 );
+  }  
+  EEPROM.get( UPPER_TIME_BOUND,  high );
+  if(high == 0){
+    EEPROM.write( UPPER_TIME_BOUND, 6 );
+  }  
+  EEPROM.get( ANALOG_THRESHOLD,  analogTreshold );
+  if(analogTreshold == 0){
+    EEPROM.write( ANALOG_THRESHOLD, 512 );
+  }  
+}
 
 void setup() {
   // Interrupts once per second
@@ -454,6 +480,8 @@ void setup() {
   // TCCR1B |= (1 << CS12);
   // TIMSK1 |= (1 << OCIE1A);
   sei();
+
+  detaults();
 
   pinMode(ALARM_PIN, OUTPUT);
   pinMode(CONTINUOUS_ZONE_PIN, INPUT);
