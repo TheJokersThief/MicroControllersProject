@@ -184,7 +184,7 @@ int loginMode() {
         case 0xFF6897: received_value = 0;      break;
         case 0xFF30CF: received_value = 1;      break;
         case 0xFF18E7: received_value = 2;      break;
-        case 0xFFFFFF: received_value = 3;      break;
+        case 0xFF7A85: received_value = 3;      break;
         case 0xFF10EF: received_value = 4;      break;
         case 0xFF38C7: received_value = 5;      break;
         case 0xFF5AA5: received_value = 6;      break;
