@@ -258,6 +258,33 @@ void appendLog( unsigned long int time_of_breach, unsigned short zone ){
 }
 
 /**
+ * Allows user to navigate the stored log
+ * @param current_log The current log to be printed
+ */
+void printLog( short current_log ){
+  int memory_address = LOG_MEMORY_START + (LOG_LENGTH * current_log);
+  
+  unsigned long int time_of_breach;
+  unsigned short zone;
+
+  EEPROM.get( memory_address, time_of_breach );
+  memory_address += sizeof(time_of_breach);
+  EEPROM.get( memory_address, zone );
+
+
+  irrecv.resume();
+  while( !irrecv.decode(&results) ) { /* Wait for input! */ }
+  switch(results.value)
+  {
+    case 0xFF22DD: printLog( current_log - 1 );        break;
+    case 0xFF02FD: printLog( current_log + 1 );        break;
+    case 0xFFB04F: /* If return, just let it go */ break;
+    default: break; // Other button press or undefined
+  }
+  irrecv.resume();
+}
+
+/**
  * Exit admin mode
  */
 void exitAdmin( ){
@@ -534,7 +561,7 @@ void loop() {
         break;
       case 0xFF22DD: Serial.println("PREV");        break;
       case 0xFF02FD: Serial.println("NEXT");        break;
-      case 0xFFC23D: Serial.println("PLAY/PAUSE");  break;
+      case 0xFFC23D: /* PLAY/PAUSE */ printLog( 0 ) break;
       case 0xFFE01F: Serial.println("-");           break;
       case 0xFFA857: Serial.println("+");           break;
       case 0xFF6897: Serial.println("0");           break;
@@ -584,6 +611,7 @@ void loop() {
 ISR (TIMER1_COMPA_vect){
 //  printTime();
 }
+
 
 
 
