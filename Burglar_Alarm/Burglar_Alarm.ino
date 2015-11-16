@@ -31,6 +31,11 @@
  *
  * EQ : Enter password (4-Digit Pin)
  * Return : Return to standard menu
+ * Play/Pause : Navigate Log
+ *   Next     : Next log
+ *   Prev     : Previous log
+ * Mute       : Turn off alarm
+ * Power      : Set/unset the alarm
  *
  * EEPROM Mapping
  * --------------
