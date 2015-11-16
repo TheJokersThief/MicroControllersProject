@@ -352,11 +352,13 @@ void printLog( short current_log ){
   EEPROM.get( NUMBER_OF_BREACHES, number_of_breaches );
 
   if( current_log <= number_of_breaches && current_log != 0 ){
+    // If we have a log to show 
     int memory_address = LOG_MEMORY_START + (LOG_LENGTH * current_log);
     
     unsigned long int time_of_breach;
     unsigned short zone;
 
+    // Get log info
     EEPROM.get( memory_address, time_of_breach );
     memory_address += sizeof(time_of_breach);
     EEPROM.get( memory_address, zone );
@@ -370,8 +372,8 @@ void printLog( short current_log ){
     while( !irrecv.decode(&results) ) { /* Wait for input! */ }
     switch(results.value)
     {
-      case 0xFF22DD: irrecv.resume(); printLog( current_log - 1 );        break;
-      case 0xFF02FD: irrecv.resume(); printLog( current_log + 1 );        break;
+      case 0xFF22DD: printLog( current_log - 1 );    break;
+      case 0xFF02FD: printLog( current_log + 1 );    break;
       case 0xFFB04F: /* If return, just let it go */ break;
       default: printLog(current_log); // Other button press or undefined
     }
@@ -380,12 +382,18 @@ void printLog( short current_log ){
     lcd.clear();
     lcd.print("NO LOGS");
     delay( 1000 );
+
     if( current_log > 0 )
+      // If current log isn't 0, send them back a log
       printLog( current_log - 1 );
   }
 }
 
-char convertUnixToReadable( unsigned long int input_time ){
+/**
+ * Prints out unix time in a human-readable format
+ * @param  input_time Unix time input
+ */
+void convertUnixToReadable( unsigned long int input_time ){
   TimeElements full_time;
   breakTime( input_time, full_time );
 
