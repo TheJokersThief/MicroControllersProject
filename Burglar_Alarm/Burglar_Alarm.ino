@@ -88,6 +88,14 @@
 #define CONTINUOUS_ZONE       3
 #define CONTINUOUS_ZONE_PIN   2
 
+ // ~~~~~ TIME SETTING MODE ~~~~
+#define HOUR 0
+#define MINUTE 1
+#define DAY 2
+#define MONTH 3
+#define YEAR 4
+
+// ~~~~~~~~~ LOGS ~~~~~~~~~~~~~~
 #define LOG_MEMORY_START  100
 #define LOG_LENGTH        5
 
@@ -158,6 +166,85 @@ void printWithLeadingZero(int val){
     lcd.print('0');
   }
   lcd.print(val);
+}
+
+void changeTime(){
+    TimeElements t;
+    time_t newTime;
+    breakTime(now(), t);
+    
+    int settingsMode = 0;
+    short exitLoop = 0;
+
+    while( !exitLoop ){
+      newTime = makeTime(t);
+  
+      lcd.clear();
+      lcd.setCursor(0,0);
+
+      lcd.print( hour(newTime) );
+      lcd.print(':');
+      printWithLeadingZero( minute(newTime) );
+
+      lcd.print(' ');
+
+      printWithLeadingZero( day(newTime) );
+      lcd.print('/');
+      printWithLeadingZero( month(newTime) );
+      lcd.print('/');
+      lcd.print( year(newTime) );
+
+      lcd.setCursor(0,1);
+      
+      if(settingsMode == HOUR){
+        lcd.print("Setting HOUR");
+      } else if(settingsMode == MINUTE){
+        lcd.print("Setting MINUTE");
+      } else if(settingsMode == DAY){
+        lcd.print("Setting DAY");
+      } else if(settingsMode == MONTH){
+        lcd.print("Setting MONTH");
+      } else if(settingsMode == YEAR){
+        lcd.print("Setting YEAR");
+      }
+
+      irrecv.resume();
+      while( !irrecv.decode(&results) ) { /* Wait for input! */ }
+      switch(results.value){
+                            // +4 should be -1, but here we avoid nevative modulo
+        case 0xFF22DD: /* PREV */ settingsMode = (settingsMode+4)%5;       break;
+        case 0xFF02FD: /* NEXT */ settingsMode = (settingsMode+1)%5;       break;
+        case 0xFFE01F: /*  -  */
+            if(settingsMode == HOUR){
+              t.Hour--;
+            } else if(settingsMode == MINUTE){
+              t.Minute--;
+            } else if(settingsMode == DAY){
+              t.Day--;
+            } else if(settingsMode == MONTH){
+              t.Month--;
+            } else if(settingsMode == YEAR){
+              t.Year--;
+            }
+           break;
+        case 0xFFA857: /*  +  */
+            if(settingsMode == HOUR){
+              t.Hour++;
+            } else if(settingsMode == MINUTE){
+              t.Minute++;
+            } else if(settingsMode == DAY){
+              t.Day++;
+            } else if(settingsMode == MONTH){
+              t.Month++;
+            } else if(settingsMode == YEAR){
+              t.Year++;
+            }
+           break;
+        case 0xFFB04F: /* RET */ exitLoop = 1; break;
+      }
+    }
+
+    setTime(newTime);
 }
 
 /**
@@ -373,7 +460,6 @@ void digitalZoneTrip( ){
       appendLog( now(), DIGITAL_ZONE );
     }
   }
-
 }
 
 /**
@@ -593,7 +679,12 @@ void loop() {
       case 0xFFE01F: Serial.println("-");           break;
       case 0xFFA857: Serial.println("+");           break;
       case 0xFF6897: Serial.println("0");           break;
-      case 0xFF9867: Serial.println("100+");        break;
+      case 0xFF9867:
+          /* 100+ */
+          if(is_user_logged_in || loginMode() ){
+            changeTime();
+          }
+        break;
 
       case 0xFFB04F:
           // RET
@@ -639,3 +730,4 @@ void loop() {
 ISR (TIMER1_COMPA_vect){
 //  printTime();
 }
+
