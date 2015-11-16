@@ -355,6 +355,9 @@ void printLog( short current_log ){
   unsigned short number_of_breaches;
   EEPROM.get( NUMBER_OF_BREACHES, number_of_breaches );
 
+  Serial.print( "NUMBER_OF_BREACHES " );
+  Serial.println(number_of_breaches);
+
   if( current_log <= number_of_breaches && current_log != 0){
     // If we have a log to show 
     int memory_address = LOG_MEMORY_START + (LOG_LENGTH * current_log);
@@ -532,32 +535,32 @@ void setOption( short option ){
   unsigned short digits;
   switch( option ){
     case 0:
-        // PASSWORD
+        lcd.print("PASSWORD");
         address = PASSWORD;
         digits = 4;
       break;
     case 1:
-        // ADMIN_PASSWORD
+        lcd.print("ADMIN_PASSWORD");
         address = ADMIN_PASSWORD;
         digits = 4;
       break;
     case 2:
-        // LOWER_TIME_BOUND
+        lcd.print("LOWER_TIME_BOUND");
         address = LOWER_TIME_BOUND;
         digits = 2;
       break;
     case 3:
-        // UPPER_TIME_BOUND
+        lcd.print("UPPER_TIME_BOUND");
         address = UPPER_TIME_BOUND;
         digits = 2;
       break;
     case 4:
-        // DIGITAL_CONDITION
+        lcd.print("DIGITAL_CONDITION");
         address = DIGITAL_CONDITION;
         digits = 1;
       break;
     case 5:
-        // ANALOG_THRESHOLD
+        lcd.print("ANALOG_THRESHOLD");
         address = ANALOG_THRESHOLD;
         digits = 2;
       break;
@@ -568,7 +571,8 @@ void setOption( short option ){
 
   if( digits > 2 ){
     // If there are more than 2 digits, we'll need an int
-    unsigned int final_value;
+    unsigned int final_value = 0;
+    lcd.setCursor(0,1);
     for(int i = 0; i < digits; i++){
       int received_value = 0;
       irrecv.resume();
@@ -578,7 +582,7 @@ void setOption( short option ){
           case 0xFF6897: received_value = 0;      break;
           case 0xFF30CF: received_value = 1;      break;
           case 0xFF18E7: received_value = 2;      break;
-          case 0xFFFFFF: received_value = 3;      break;
+          case 0xFF7A85: received_value = 3;      break;
           case 0xFF10EF: received_value = 4;      break;
           case 0xFF38C7: received_value = 5;      break;
           case 0xFF5AA5: received_value = 6;      break;
@@ -590,13 +594,17 @@ void setOption( short option ){
         }
         final_value *= 10;
         final_value += received_value;
+        lcd.print(received_value);
+        // Minor delay to prevent debouncing "0"s
+        delay(50);
         irrecv.resume();
     }
-
+    Serial.println( final_value );
     EEPROM.put( address, final_value );
   } else {
     // If there are less than 2 digits, we can use a short
-    unsigned short final_value;
+    unsigned short final_value = 0;
+    lcd.setCursor(0,1);
     for(int i = 0; i < digits; i++){
       int received_value = 0;
       irrecv.resume();
@@ -606,7 +614,7 @@ void setOption( short option ){
           case 0xFF6897: received_value = 0;      break;
           case 0xFF30CF: received_value = 1;      break;
           case 0xFF18E7: received_value = 2;      break;
-          case 0xFFFFFF: received_value = 3;      break;
+          case 0xFF7A85: received_value = 3;      break;
           case 0xFF10EF: received_value = 4;      break;
           case 0xFF38C7: received_value = 5;      break;
           case 0xFF5AA5: received_value = 6;      break;
@@ -618,9 +626,12 @@ void setOption( short option ){
         }
         final_value *= 10;
         final_value += received_value;
+        lcd.print(received_value);
+        // Minor delay to prevent debouncing "0"s
+        delay(50);
         irrecv.resume();
     }
-
+    Serial.println( final_value );
     EEPROM.put( address, final_value );
   }
 }
@@ -718,7 +729,6 @@ void loop() {
         break;
       case 0xFFE01F: Serial.println("-");           break;
       case 0xFFA857: Serial.println("+");           break;
-      case 0xFF6897: Serial.println("0");           break;
       case 0xFF9867:
           /* 100+ */
           if(is_user_logged_in || loginMode() ){
@@ -734,15 +744,48 @@ void loop() {
             logout();
           }
         break;
-      case 0xFF30CF: Serial.println("1");           break;
-      case 0xFF18E7: Serial.println("2");           break;
-      case 0xFFFFFF: Serial.println("3");           break;
-      case 0xFF10EF: Serial.println("4");           break;
-      case 0xFF38C7: Serial.println("5");           break;
-      case 0xFF5AA5: Serial.println("6");           break;
-      case 0xFF42BD: Serial.println("7");           break;
-      case 0xFF4AB5: Serial.println("8");           break;
-      case 0xFF52AD: Serial.println("9");           break;
+
+      /* SET OPTION VALUES */
+      case 0xFF6897: 
+          if( is_admin || ( loginMode( ) && is_admin ) )
+            setOption( 0 );
+        break;
+      case 0xFF30CF: 
+          if( is_admin || ( loginMode( ) && is_admin ) )
+            setOption( 1 );
+        break;
+      case 0xFF18E7: 
+          if( is_admin || ( loginMode( ) && is_admin ) )
+            setOption( 2 );
+        break;
+      case 0xFFFFFF: 
+          if( is_admin || ( loginMode( ) && is_admin ) )
+            setOption( 3 );
+        break;
+      case 0xFF10EF: 
+          if( is_admin || ( loginMode( ) && is_admin ) )
+            setOption( 4 );
+        break;
+      case 0xFF38C7: 
+          if( is_admin || ( loginMode( ) && is_admin ) )
+            setOption( 5 );
+        break;
+      // case 0xFF5AA5: 
+      //     if( is_user_logged_in || loginMode( ) )
+      //       setOption( 6 );
+      //   break;
+      // case 0xFF42BD: 
+      //     if( is_user_logged_in || loginMode( ) )
+      //       setOption( 7 );
+      //   break;
+      // case 0xFF4AB5: 
+      //     if( is_user_logged_in || loginMode( ) )
+      //       setOption( 8 );
+      //   break;
+      // case 0xFF52AD: 
+      //     if( is_user_logged_in || loginMode( ) )
+      //       setOption( 9 );
+      //   break;
       default: Serial.println("unrecognised");
     }
 
