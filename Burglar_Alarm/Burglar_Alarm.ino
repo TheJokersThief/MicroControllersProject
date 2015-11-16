@@ -348,35 +348,47 @@ void appendLog( unsigned long int time_of_breach, unsigned short zone ){
  * @param current_log The current log to be printed
  */
 void printLog( short current_log ){
-  int memory_address = LOG_MEMORY_START + (LOG_LENGTH * current_log);
-  
-  unsigned long int time_of_breach;
-  unsigned short zone;
+  unsigned short number_of_breaches;
+  EEPROM.get( NUMBER_OF_BREACHES, number_of_breaches );
 
-  EEPROM.get( memory_address, time_of_breach );
-  memory_address += sizeof(time_of_breach);
-  EEPROM.get( memory_address, zone );
+  if( current_log <= number_of_breaches && current_log != 0 ){
+    int memory_address = LOG_MEMORY_START + (LOG_LENGTH * current_log);
+    
+    unsigned long int time_of_breach;
+    unsigned short zone;
 
-  lcd.clear();
-  convertUnixToReadable( time_of_breach );
-  lcd.setCursor(0,1);
-  lcd.print( zone );
+    EEPROM.get( memory_address, time_of_breach );
+    memory_address += sizeof(time_of_breach);
+    EEPROM.get( memory_address, zone );
 
-  irrecv.resume();
-  while( !irrecv.decode(&results) ) { /* Wait for input! */ }
-  switch(results.value)
-  {
-    case 0xFF22DD: irrecv.resume(); printLog( current_log - 1 );        break;
-    case 0xFF02FD: irrecv.resume(); printLog( current_log + 1 );        break;
-    case 0xFFB04F: /* If return, just let it go */ break;
-    default: printLog(current_log); // Other button press or undefined
+    lcd.clear();
+    convertUnixToReadable( time_of_breach );
+    lcd.setCursor(0,1);
+    lcd.print( zone );
+
+    irrecv.resume();
+    while( !irrecv.decode(&results) ) { /* Wait for input! */ }
+    switch(results.value)
+    {
+      case 0xFF22DD: irrecv.resume(); printLog( current_log - 1 );        break;
+      case 0xFF02FD: irrecv.resume(); printLog( current_log + 1 );        break;
+      case 0xFFB04F: /* If return, just let it go */ break;
+      default: printLog(current_log); // Other button press or undefined
+    }
+    irrecv.resume();
+  } else{
+    lcd.clear();
+    lcd.print("NO LOGS");
+    delay( 1000 );
+    if( current_log > 0 )
+      printLog( current_log - 1 );
   }
-  irrecv.resume();
 }
 
 char convertUnixToReadable( unsigned long int input_time ){
   TimeElements full_time;
   breakTime( input_time, full_time );
+
   printWithLeadingZero(full_time.Hour);
   lcd.print( ":" );
   printWithLeadingZero(full_time.Minute); 
@@ -730,4 +742,3 @@ void loop() {
 ISR (TIMER1_COMPA_vect){
 //  printTime();
 }
-
