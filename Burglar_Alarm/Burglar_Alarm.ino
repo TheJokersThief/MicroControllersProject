@@ -262,7 +262,7 @@ int loginMode() {
     if( is_user_logged_in && !is_admin ){
       lcd.print( "Enter admin pin");
     } else {
-      lcd.print( "Enter 4 digit pin");
+      lcd.print( "4 Digit Pin");
     }
     delay(50);
     
