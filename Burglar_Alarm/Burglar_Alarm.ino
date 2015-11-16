@@ -144,7 +144,6 @@ void printTime(){
   lcd.print(':');
   printWithLeadingZero( minute() );
 
-
   lcd.print( ' ' );
 
   printWithLeadingZero( day() );
