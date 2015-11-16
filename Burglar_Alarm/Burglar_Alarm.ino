@@ -9,7 +9,7 @@
  * 
  * Digital
  * -------
- * 1 : Entry/Exit Zone
+ * 
  * 2 (interrupt) : Digital Zone 
  * 3 (interrupt) : Continuous Zone 
  * 4 : LCD Screen 
@@ -18,7 +18,7 @@
  * 7 : LCD Screen
  * 8 : LCD Screen
  * 9 : LCD Screen
- * 
+ * 10: Entry/Exit Zone
  * 12: IR Sensor
  * 13: ALARM
  * 
@@ -69,7 +69,7 @@
 
 // ~~~~~ ENTRY / EXIT ZONE ~~~~~
 #define ENTRY_EXIT_ZONE       0
-#define ENTRY_EXIT_PIN        1
+#define ENTRY_EXIT_PIN        10
 #define LOWER_TIME_BOUND      15     // Hour (2 digits max)
 #define UPPER_TIME_BOUND      16     // Hour (2 digits max)
 
