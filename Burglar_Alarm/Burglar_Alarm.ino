@@ -54,7 +54,7 @@
  *  Analog  (Zone 2)
  *    30 - 32 : threshold (unsigned int)
  *
- * 100 - 1024 : Logging
+ * 100 - 512 : Logging
  *   Bit Mapping (5 bytes each):
  *   0 - 3 : time (unsigned long int)
  *   4     : zone (unsigned short)
@@ -331,16 +331,20 @@ void appendLog( unsigned long int time_of_breach, unsigned short zone ){
 
   unsigned short number_of_breaches;
   EEPROM.get( NUMBER_OF_BREACHES, number_of_breaches );
-  int memory_address = LOG_MEMORY_START + (LOG_LENGTH * number_of_breaches );
 
   // Increase the number of breaches
   number_of_breaches++;
-  EEPROM.write( NUMBER_OF_BREACHES, number_of_breaches );
+  EEPROM.put( NUMBER_OF_BREACHES, number_of_breaches );
+
+  int memory_address = LOG_MEMORY_START + (LOG_LENGTH * number_of_breaches );
+
+  Serial.print( "APPENDING LOG " );
+  Serial.println( number_of_breaches );
 
   // Write our log to EEPROM
-  EEPROM.write( memory_address, time_of_breach );
+  EEPROM.put( memory_address, time_of_breach );
   memory_address += sizeof(time_of_breach);
-  EEPROM.write( memory_address, zone );
+  EEPROM.put( memory_address, zone );
 }
 
 /**
@@ -351,7 +355,7 @@ void printLog( short current_log ){
   unsigned short number_of_breaches;
   EEPROM.get( NUMBER_OF_BREACHES, number_of_breaches );
 
-  if( current_log <= number_of_breaches && current_log != 0 ){
+  if( current_log <= number_of_breaches && current_log != 0){
     // If we have a log to show 
     int memory_address = LOG_MEMORY_START + (LOG_LENGTH * current_log);
     
@@ -366,7 +370,21 @@ void printLog( short current_log ){
     lcd.clear();
     convertUnixToReadable( time_of_breach );
     lcd.setCursor(0,1);
-    lcd.print( zone );
+
+    switch(zone){
+      case DIGITAL_ZONE:
+          lcd.print( "DIGITAL ZONE");
+        break;
+      case ANALOG_ZONE:
+          lcd.print("ANALOG ZONE");
+        break;
+      case CONTINUOUS_ZONE:
+          lcd.print( "CONTINUOUS ZONE");
+        break;
+      case ENTRY_EXIT_ZONE:
+          lcd.print("ENTRY/EXIT ZONE");
+        break;
+    }
 
     irrecv.resume();
     while( !irrecv.decode(&results) ) { /* Wait for input! */ }
@@ -420,6 +438,7 @@ void logout( ){
   is_user_logged_in = 0;
   lcd.clear();
   lcd.print("Logged out");
+  delay(700);
 }
 
 void toggleAlarmSet( ){
@@ -622,6 +641,7 @@ void defaults(){
   EEPROM.put( ADMIN_PASSWORD, admin_password );
   EEPROM.put( ANALOG_THRESHOLD, analog_threshold );
 
+  EEPROM.put( NUMBER_OF_BREACHES, number_breaches );
   EEPROM.put( LOWER_TIME_BOUND, lower_bound_hour );
   EEPROM.put( UPPER_TIME_BOUND, upper_bound_hour );
   EEPROM.put( DIGITAL_CONDITION, digital_trip_condition );
@@ -694,7 +714,7 @@ void loop() {
       case 0xFFC23D: 
           /* PLAY/PAUSE */ 
           if( is_user_logged_in || loginMode() )
-            printLog( 0 ); 
+            printLog( 1 ); 
         break;
       case 0xFFE01F: Serial.println("-");           break;
       case 0xFFA857: Serial.println("+");           break;
