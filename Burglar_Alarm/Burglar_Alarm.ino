@@ -394,6 +394,7 @@ void setOption( short option ){
     unsigned int final_value;
     for(int i = 0; i < digits; i++){
       int received_value = 0;
+      irrecv.resume();
       while( !irrecv.decode(&results) ) { /* Wait for input! */ }
         switch(results.value)
         {
@@ -412,6 +413,7 @@ void setOption( short option ){
         }
         final_value *= 10;
         final_value += received_value;
+        irrecv.resume();
     }
 
     EEPROM.put( address, final_value );
@@ -420,6 +422,7 @@ void setOption( short option ){
     unsigned short final_value;
     for(int i = 0; i < digits; i++){
       int received_value = 0;
+      irrecv.resume();
       while( !irrecv.decode(&results) ) { /* Wait for input! */ }
         switch(results.value)
         {
@@ -438,6 +441,7 @@ void setOption( short option ){
         }
         final_value *= 10;
         final_value += received_value;
+        irrecv.resume();
     }
 
     EEPROM.put( address, final_value );
