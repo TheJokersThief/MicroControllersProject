@@ -308,12 +308,15 @@ void toggleAlarm( ){
   alarm_active = !alarm_active;
 
   lcd.clear();
+  lcd.setCursor(0,1);
   if( alarm_active ){
     lcd.print( "ALARM ACTIVE     ");
     digitalWrite( ALARM_PIN, HIGH );
   } else {
     lcd.print( "ALARM DEACTIVATED");
     digitalWrite( ALARM_PIN, LOW );
+    delay(1500);
+    lcd.clear();
   }
 }
 
@@ -524,6 +527,10 @@ void setup() {
   pinMode(DIGITAL_ZONE_PIN, INPUT);
   pinMode(ENTRY_EXIT_PIN, INPUT);
 
+  digitalWrite( ALARM_PIN, LOW );
+  digitalWrite( CONTINUOUS_ZONE_PIN, LOW );
+  digitalWrite( DIGITAL_ZONE_PIN, LOW );
+
   attachInterrupt( digitalPinToInterrupt(DIGITAL_ZONE_PIN), digitalZoneTrip, CHANGE  );
   attachInterrupt( digitalPinToInterrupt(CONTINUOUS_ZONE_PIN), contZoneTrip, FALLING );
 
@@ -610,9 +617,3 @@ void loop() {
 ISR (TIMER1_COMPA_vect){
 //  printTime();
 }
-
-
-
-
-
-
