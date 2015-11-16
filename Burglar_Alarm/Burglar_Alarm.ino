@@ -270,17 +270,35 @@ void printLog( short current_log ){
   memory_address += sizeof(time_of_breach);
   EEPROM.get( memory_address, zone );
 
+  lcd.clear();
+  convertUnixToReadable( time_of_breach );
+  lcd.setCursor(0,1);
+  lcd.print( zone );
 
   irrecv.resume();
   while( !irrecv.decode(&results) ) { /* Wait for input! */ }
   switch(results.value)
   {
-    case 0xFF22DD: printLog( current_log - 1 );        break;
-    case 0xFF02FD: printLog( current_log + 1 );        break;
+    case 0xFF22DD: irrecv.resume(); printLog( current_log - 1 );        break;
+    case 0xFF02FD: irrecv.resume(); printLog( current_log + 1 );        break;
     case 0xFFB04F: /* If return, just let it go */ break;
-    default: break; // Other button press or undefined
+    default: printLog(current_log); // Other button press or undefined
   }
   irrecv.resume();
+}
+
+char convertUnixToReadable( unsigned long int input_time ){
+  TimeElements full_time;
+  breakTime( input_time, full_time );
+  printWithLeadingZero(full_time.Hour);
+  lcd.print( ":" );
+  printWithLeadingZero(full_time.Minute); 
+  lcd.print( " " );
+  printWithLeadingZero( full_time.Day );
+  lcd.print("/");
+  printWithLeadingZero( full_time.Month );
+  lcd.print("/");
+  lcd.print( full_time.Year + 1970 );
 }
 
 /**
@@ -567,7 +585,11 @@ void loop() {
         break;
       case 0xFF22DD: Serial.println("PREV");        break;
       case 0xFF02FD: Serial.println("NEXT");        break;
-      case 0xFFC23D: /* PLAY/PAUSE */ printLog( 0 ) break;
+      case 0xFFC23D: 
+          /* PLAY/PAUSE */ 
+          if( is_user_logged_in || loginMode() )
+            printLog( 0 ); 
+        break;
       case 0xFFE01F: Serial.println("-");           break;
       case 0xFFA857: Serial.println("+");           break;
       case 0xFF6897: Serial.println("0");           break;
