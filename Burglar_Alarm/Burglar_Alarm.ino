@@ -663,7 +663,7 @@ int settingsSet( ){
 
   EEPROM.get( FIRST_TIME_SET, first_time );
 
-  return (first_time == "SET");
+  return !(first_time == "SET");
 }
 
 void setup() {
