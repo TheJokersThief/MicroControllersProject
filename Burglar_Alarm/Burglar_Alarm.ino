@@ -41,8 +41,8 @@
  * --------------
  * 0 - 1 : password (unsigned int)
  * 2 - 3 : admin password (unsigned int)
- * 4     : number of breaches (unsigned short)
- * 5 - 7 : first-time settings ("set" or anything else)
+ * 4 - 5 : number of breaches (unsigned short)
+ * 6 - 8 : first-time settings ("set" or anything else)
  *
  *  Entry/Exit (Zone 0)
  *    15     : lower-bound hour (unsigned short)
@@ -57,7 +57,7 @@
  * 100 - 512 : Logging
  *   Bit Mapping (5 bytes each):
  *   0 - 3 : time (unsigned long int)
- *   4     : zone (unsigned short)
+ *   4 - 5 : zone (unsigned short)
  *   
  *   
  */
@@ -65,7 +65,7 @@
 #define PASSWORD              0     // 4 digit pin
 #define ADMIN_PASSWORD        2     // 4 digit pin
 #define NUMBER_OF_BREACHES    4
-#define FIRST_TIME_SET        5
+#define FIRST_TIME_SET        6
 
 // ~~~~~ ENTRY / EXIT ZONE ~~~~~
 #define ENTRY_EXIT_ZONE       0
@@ -97,7 +97,7 @@
 
 // ~~~~~~~~~ LOGS ~~~~~~~~~~~~~~
 #define LOG_MEMORY_START  100
-#define LOG_LENGTH        5
+#define LOG_LENGTH        6
 
 #define TIME_MSG_LEN  11   // time sync to PC is HEADER followed by Unix time_t as ten ASCII digits
 #define TIME_HEADER  'T'   // Header tag for serial time sync message
@@ -344,7 +344,7 @@ void appendLog( unsigned long int time_of_breach, unsigned short zone ){
   // Write our log to EEPROM
   EEPROM.put( memory_address, time_of_breach );
   memory_address += sizeof(time_of_breach);
-  EEPROM.put( memory_address, zone );
+  EEPROM.put( memory_address, (short) zone );
 }
 
 /**
@@ -354,9 +354,6 @@ void appendLog( unsigned long int time_of_breach, unsigned short zone ){
 void printLog( short current_log ){
   unsigned short number_of_breaches;
   EEPROM.get( NUMBER_OF_BREACHES, number_of_breaches );
-
-  Serial.print( "NUMBER_OF_BREACHES " );
-  Serial.println(number_of_breaches);
 
   if( current_log <= number_of_breaches && current_log != 0){
     // If we have a log to show 
@@ -369,17 +366,15 @@ void printLog( short current_log ){
     EEPROM.get( memory_address, time_of_breach );
     memory_address += sizeof(time_of_breach);
     EEPROM.get( memory_address, zone );
-
+    
     lcd.clear();
-    convertUnixToReadable( time_of_breach );
-    lcd.setCursor(0,1);
-
     switch(zone){
       case DIGITAL_ZONE:
           lcd.print( "DIGITAL ZONE");
         break;
       case ANALOG_ZONE:
           lcd.print("ANALOG ZONE");
+          delay(1000);
         break;
       case CONTINUOUS_ZONE:
           lcd.print( "CONTINUOUS ZONE");
@@ -387,7 +382,12 @@ void printLog( short current_log ){
       case ENTRY_EXIT_ZONE:
           lcd.print("ENTRY/EXIT ZONE");
         break;
+      default:
+          lcd.print( "UNKNOWN ZONE" );
+        break;
     }
+    lcd.setCursor(0,1);
+    convertUnixToReadable( time_of_breach );
 
     irrecv.resume();
     while( !irrecv.decode(&results) ) { /* Wait for input! */ }
@@ -522,6 +522,7 @@ void analogZoneTrip( ){
   if( analogRead( ANALOG_ZONE_PIN ) > threshold && !alarm_active ){
     toggleAlarm( );
     appendLog( now(), ANALOG_ZONE );
+    delay(200);
   }
 }
 
@@ -717,6 +718,7 @@ void loop() {
       // then activate the alarm
       toggleAlarm( );
       appendLog( now(), ENTRY_EXIT_ZONE );
+      delay( 200 );
     }
   }
   
