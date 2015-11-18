@@ -701,6 +701,22 @@ void setup() {
 }
 
 void loop() {
+
+  if( digitalRead(ENTRY_EXIT_PIN) == HIGH ){
+    Serial.print( "BUTTON PRESSED" );
+    unsigned short lower, upper, currentHour;
+    EEPROM.get( LOWER_TIME_BOUND, lower );
+    EEPROM.get( UPPER_TIME_BOUND, upper );
+    currentHour = hour();
+
+    if( !alarm_active && !( currentHour <= lower && currentHour >= upper) ){
+      // If current hour is not between the upper and lower bound
+      // then activate the alarm
+      toggleAlarm( );
+      appendLog( now(), ENTRY_EXIT_ZONE );
+    }
+  }
+  
   if( irrecv.decode(&results) ) {
     switch(results.value)
     {
@@ -792,20 +808,6 @@ void loop() {
     irrecv.resume(); // Receive the next value
   } else {
       printTime();
-  }
-
-  if( digitalRead(ENTRY_EXIT_PIN) == HIGH ){
-    unsigned short lower, upper, currentHour;
-    EEPROM.get( LOWER_TIME_BOUND, lower );
-    EEPROM.get( UPPER_TIME_BOUND, upper );
-    currentHour = hour();
-
-    if( !alarm_active && !( currentHour <= lower && currentHour >= upper) ){
-      // If current hour is not between the upper and lower bound
-      // then activate the alarm
-      toggleAlarm( );
-      appendLog( now(), ENTRY_EXIT_ZONE );
-    }
   }
 
 }
