@@ -658,7 +658,16 @@ void defaults(){
   EEPROM.put( DIGITAL_CONDITION, digital_trip_condition );
 }
 
+int settingsSet( ){
+  char first_time[3];
+
+  EEPROM.get( FIRST_TIME_SET, first_time );
+
+  return (first_time == "SET");
+}
+
 void setup() {
+  Serial.begin(9600);
   // Interrupts once per second
   // TCCR1A = 0;
   // TCCR1B = 0;
@@ -668,14 +677,6 @@ void setup() {
   // TCCR1B |= (1 << CS12);
   // TIMSK1 |= (1 << OCIE1A);
   sei();
-
-  char first_time[] = "SET";
-
-  EEPROM.get( FIRST_TIME_SET, first_time );
-  
-  if( first_time != "SET" ){
-    defaults();
-  }
 
   pinMode(ALARM_PIN, OUTPUT);
   pinMode(CONTINUOUS_ZONE_PIN, INPUT);
@@ -689,12 +690,14 @@ void setup() {
   attachInterrupt( digitalPinToInterrupt(DIGITAL_ZONE_PIN), digitalZoneTrip, CHANGE  );
   attachInterrupt( digitalPinToInterrupt(CONTINUOUS_ZONE_PIN), contZoneTrip, FALLING );
 
-  Serial.begin(9600);
+  int first_time = settingsSet( );
 
-  setTime(1262347200);
-  
-  Serial.println( now() );
-  
+  if( first_time ){
+    defaults();
+  }
+
+  setTime( 1447854337 );
+      
   irrecv.enableIRIn(); 
 
   lcd.begin(16, 2);
