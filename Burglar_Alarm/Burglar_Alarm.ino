@@ -720,6 +720,8 @@ void loop() {
     }
   }
   
+  analogZoneTrip( );
+
   if( irrecv.decode(&results) ) {
     switch(results.value)
     {
