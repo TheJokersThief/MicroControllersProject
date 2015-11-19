@@ -54,7 +54,7 @@
  *  Analog  (Zone 2)
  *    30 - 32 : threshold (unsigned int)
  *
- * 100 - 512 : Logging
+ * 100 - 511 : Logging
  *   Bit Mapping (5 bytes each):
  *   0 - 3 : time (unsigned long int)
  *   4 - 5 : zone (unsigned short)
@@ -124,27 +124,9 @@ volatile unsigned short alarm_active = 0;
 // 0 not logged in ; 1 logged in 
 unsigned short is_user_logged_in = 0;
 
-
-// Taken from an example of Time.h, a method to sync time to PC
-// using a Unix time value sent by the PC over serial
-//void syncTime(){
-//  // if time sync available from serial port, update time and return true
-//  while(Serial.available() >=  TIME_MSG_LEN ){  // time message consists of header & 10 ASCII digits
-//    char c = Serial.read() ; 
-//    Serial.print(c);  
-//    if( c == TIME_HEADER ) {       
-//      time_t pctime = 0;
-//      for(int i=0; i < TIME_MSG_LEN -1; i++){   
-//        c = Serial.read();          
-//        if( c >= '0' && c <= '9'){   
-//          pctime = (10 * pctime) + (c - '0') ; // convert digits to a number    
-//        }
-//      }   
-//      setTime(pctime);   // Sync Arduino clock to the time received on the serial port
-//    }  
-//  }
-//}
-
+/**
+ * Prints the current time to the LCD
+ */
 void printTime(){
   lcd.setCursor(0, 0);
 
@@ -161,6 +143,10 @@ void printTime(){
   lcd.print( year() );
 }
 
+/**
+ * Pads and prints an integer with 0s
+ * @param val Integer to pad
+ */
 void printWithLeadingZero(int val){
   if(val < 10){
     lcd.print('0');
@@ -168,6 +154,9 @@ void printWithLeadingZero(int val){
   lcd.print(val);
 }
 
+/**
+ * Set the time
+ */
 void changeTime(){
     TimeElements t;
     time_t newTime;
@@ -338,7 +327,6 @@ void appendLog( unsigned long int time_of_breach, unsigned short zone ){
 
   int memory_address = LOG_MEMORY_START + (LOG_LENGTH * number_of_breaches );
 
-  Serial.print( "APPENDING LOG " );
   Serial.println( number_of_breaches );
 
   // Write our log to EEPROM
@@ -374,7 +362,6 @@ void printLog( short current_log ){
         break;
       case ANALOG_ZONE:
           lcd.print("ANALOG ZONE");
-          delay(1000);
         break;
       case CONTINUOUS_ZONE:
           lcd.print( "CONTINUOUS ZONE");
@@ -437,6 +424,9 @@ void exitAdmin( ){
   logout( );
 }
 
+/**
+ * Remove logged in status
+ */
 void logout( ){
   is_user_logged_in = 0;
   lcd.clear();
@@ -444,6 +434,9 @@ void logout( ){
   delay(700);
 }
 
+/**
+ * Change whether the alarm can be active or not
+ */
 void toggleAlarmSet( ){
   if( !alarm_active ){
     lcd.clear();
@@ -503,6 +496,9 @@ void entryExitZoneTrip( ){
   if( !( currentHour <= lower && currentHour >= upper) ){
     // If current hour is not between the upper and lower bound
     // then activate the alarm
+    // 
+    
+    /* ~~~~ NEED TO start a timer to allow someone to turn off the alarm ~~~~~ */
     toggleAlarm( );
     appendLog( now(), ENTRY_EXIT_ZONE );
   }
@@ -516,12 +512,12 @@ void digitalZoneTrip( ){
   EEPROM.get( DIGITAL_CONDITION, trip_condition );
 
   if( trip_condition ){
-    if( digitalRead( DIGITAL_ZONE_PIN ) == HIGH && !alarm_active ){
+    if( digitalRead( DIGITAL_ZONE_PIN ) == HIGH && !alarm_active && alarm_set ){
       toggleAlarm( );
       appendLog( now(), DIGITAL_ZONE );
     }
   } else {
-    if( digitalRead( DIGITAL_ZONE_PIN ) == LOW && !alarm_active ){
+    if( digitalRead( DIGITAL_ZONE_PIN ) == LOW && !alarm_active && alarm_set ){
       toggleAlarm( );
       appendLog( now(), DIGITAL_ZONE );
     }
@@ -543,7 +539,7 @@ void analogZoneTrip( ){
   unsigned int threshold;
   EEPROM.get( ANALOG_THRESHOLD, threshold );
 
-  if( analogRead( ANALOG_ZONE_PIN ) > threshold && !alarm_active ){
+  if( analogRead( ANALOG_ZONE_PIN ) > threshold && !alarm_active && alarm_set ){
     toggleAlarm( );
     appendLog( now(), ANALOG_ZONE );
     delay(200);
@@ -624,7 +620,6 @@ void setOption( short option ){
         delay(50);
         irrecv.resume();
     }
-    Serial.println( final_value );
     EEPROM.put( address, final_value );
   } else {
     // If there are less than 2 digits, we can use a short
@@ -656,11 +651,14 @@ void setOption( short option ){
         delay(50);
         irrecv.resume();
     }
-    Serial.println( final_value );
     EEPROM.put( address, final_value );
   }
 }
 
+/**
+ * Places default values in memory if it's the 
+ * first time
+ */
 void defaults(){
   unsigned int password = 1234, 
                admin_password = 5678, 
@@ -683,6 +681,10 @@ void defaults(){
   EEPROM.put( DIGITAL_CONDITION, digital_trip_condition );
 }
 
+/**
+ * Check if settings exist
+ * @return 0 if not first time; 1 if first time
+ */
 int settingsSet( ){
   char first_time[3];
 
@@ -721,6 +723,8 @@ void setup() {
     defaults();
   }
 
+  alarm_set = 0;
+  
   setTime( 1447854337 );
       
   irrecv.enableIRIn(); 
@@ -731,13 +735,12 @@ void setup() {
 void loop() {
 
   if( digitalRead(ENTRY_EXIT_PIN) == HIGH ){
-    Serial.print( "BUTTON PRESSED" );
     unsigned short lower, upper, currentHour;
     EEPROM.get( LOWER_TIME_BOUND, lower );
     EEPROM.get( UPPER_TIME_BOUND, upper );
     currentHour = hour();
 
-    if( !alarm_active && !( currentHour <= lower && currentHour >= upper) ){
+    if( !alarm_active && alarm_set && !( currentHour <= lower && currentHour >= upper) ){
       // If current hour is not between the upper and lower bound
       // then activate the alarm
       toggleAlarm( );
@@ -760,22 +763,17 @@ void loop() {
           if( !alarm_active && ( is_user_logged_in || loginMode() ) )
             toggleAlarmSet( );
         break;
-      case 0xFF629D: Serial.println("MODE");        break;
       case 0xFFE21D:
           // MUTE
           if( alarm_active && ( is_user_logged_in || loginMode() ) ){
             toggleAlarm();
           }
         break;
-      case 0xFF22DD: Serial.println("PREV");        break;
-      case 0xFF02FD: Serial.println("NEXT");        break;
       case 0xFFC23D: 
           /* PLAY/PAUSE */ 
           if( is_user_logged_in || loginMode() )
             printLog( 1 ); 
         break;
-      case 0xFFE01F: Serial.println("-");           break;
-      case 0xFFA857: Serial.println("+");           break;
       case 0xFF9867:
           /* 100+ */
           if(is_user_logged_in || loginMode() ){
@@ -817,22 +815,7 @@ void loop() {
           if( is_admin || ( loginMode( ) && is_admin ) )
             setOption( 5 );
         break;
-      // case 0xFF5AA5: 
-      //     if( is_user_logged_in || loginMode( ) )
-      //       setOption( 6 );
-      //   break;
-      // case 0xFF42BD: 
-      //     if( is_user_logged_in || loginMode( ) )
-      //       setOption( 7 );
-      //   break;
-      // case 0xFF4AB5: 
-      //     if( is_user_logged_in || loginMode( ) )
-      //       setOption( 8 );
-      //   break;
-      // case 0xFF52AD: 
-      //     if( is_user_logged_in || loginMode( ) )
-      //       setOption( 9 );
-      //   break;
+
       default: Serial.println("unrecognised");
     }
 
@@ -841,8 +824,4 @@ void loop() {
       printTime();
   }
 
-}
-
-ISR (TIMER1_COMPA_vect){
-//  printTime();
 }
