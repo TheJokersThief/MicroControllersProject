@@ -445,7 +445,28 @@ void logout( ){
 }
 
 void toggleAlarmSet( ){
-  alarm_set = !alarm_set;
+  if( !alarm_active ){
+    lcd.clear();
+    // We set the alarm at the end of the function to
+    // avoid interrupts triggering the alarm
+    unsigned short temp_alarm = !alarm_set;
+    
+    if( temp_alarm ){
+      lcd.print( "ALARM SET" );
+      delay(800);
+      logout( );
+      for (int i = 19; i < 20 && i >= 0; i--){
+        lcd.clear();
+        lcd.print(i);
+        delay(1000);
+      }
+    } else{
+      lcd.print( "ALARM UNSET" );
+      delay(800);
+    }
+
+    alarm_set = temp_alarm;
+  }
 }
 
 /**
