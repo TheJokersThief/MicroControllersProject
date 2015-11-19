@@ -484,25 +484,6 @@ void toggleAlarm( ){
   }
 }
 
-/**
- * Trip the entry/exit zone
- */
-void entryExitZoneTrip( ){
-  volatile unsigned short lower, upper, currentHour;
-  EEPROM.get( LOWER_TIME_BOUND, lower );
-  EEPROM.get( UPPER_TIME_BOUND, upper );
-  currentHour = hour();
-
-  if( !( currentHour <= lower && currentHour >= upper) ){
-    // If current hour is not between the upper and lower bound
-    // then activate the alarm
-    // 
-    
-    /* ~~~~ NEED TO start a timer to allow someone to turn off the alarm ~~~~~ */
-    toggleAlarm( );
-    appendLog( now(), ENTRY_EXIT_ZONE );
-  }
-}
 
 /**
  * Trip the digital zone if conditions are met
@@ -734,11 +715,25 @@ void setup() {
 
 void loop() {
 
+  /**
+   * Trip the Entry/Exit zone as necessary
+   */
   if( digitalRead(ENTRY_EXIT_PIN) == HIGH ){
     unsigned short lower, upper, currentHour;
     EEPROM.get( LOWER_TIME_BOUND, lower );
     EEPROM.get( UPPER_TIME_BOUND, upper );
     currentHour = hour();
+
+    long start_time = millis();
+    while( (millis() - start_time) < 20000 ){
+      irrecv.resume(); 
+      irrecv.decode(&results);
+
+      if( results.value == 0xFF906F ){
+        loginMode( );
+      }
+    }
+    irrecv.resume(); 
 
     if( !alarm_active && alarm_set && !( currentHour <= lower && currentHour >= upper) ){
       // If current hour is not between the upper and lower bound
