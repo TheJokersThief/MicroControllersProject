@@ -477,14 +477,17 @@ void toggleAlarm( ){
 
   lcd.clear();
   lcd.setCursor(0,1);
-  if( alarm_active ){
-    lcd.print( "ALARM ACTIVE     ");
-    digitalWrite( ALARM_PIN, HIGH );
-  } else {
-    lcd.print( "ALARM DEACTIVATED");
-    digitalWrite( ALARM_PIN, LOW );
-    delay(1500);
-    lcd.clear();
+  if( alarm_set ){
+    Serial.println( alarm_set );
+    if( alarm_active ){
+      lcd.print( "ALARM ACTIVE     " );
+      digitalWrite( ALARM_PIN, HIGH );
+    } else {
+      lcd.print( "ALARM DEACTIVATED" );
+      digitalWrite( ALARM_PIN, LOW );
+      delay(1500);
+      lcd.clear();
+    }
   }
 }
 
