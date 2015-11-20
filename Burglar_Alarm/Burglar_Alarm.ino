@@ -547,24 +547,24 @@ void setOption( short option ){
         digits = 4;
       break;
     case 2:
-        lcd.print("LOWER_TIME_BOUND");
+        lcd.print("LOWER TIME (Hour)");
         address = LOWER_TIME_BOUND;
         digits = 2;
       break;
     case 3:
-        lcd.print("UPPER_TIME_BOUND");
+        lcd.print("UPPER TIME (Hour)");
         address = UPPER_TIME_BOUND;
         digits = 2;
       break;
     case 4:
-        lcd.print("DIGITAL_CONDITION");
+        lcd.print("DIGITAL COND 0/1");
         address = DIGITAL_CONDITION;
         digits = 1;
       break;
     case 5:
-        lcd.print("ANALOG_THRESHOLD");
+        lcd.print("ANALOG THRESH 1-255");
         address = ANALOG_THRESHOLD;
-        digits = 2;
+        digits = 3;
       break;
     default:
         return;
