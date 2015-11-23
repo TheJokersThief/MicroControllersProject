@@ -229,7 +229,7 @@ void changeTime(){
               t.Year++;
             }
            break;
-        case 0xFFB04F: /* RET */ exitLoop = 1; break;
+        case 0xFFB04F: /* RET */ exitLoop = 1; lcd.clear(); break;
       }
     }
 
@@ -827,3 +827,4 @@ void loop() {
   }
 
 }
+
