@@ -55,7 +55,7 @@
  *    30 - 32 : threshold (unsigned int)
  *
  * 100 - 511 : Logging
- *   Bit Mapping (5 bytes each):
+ *   Bit Mapping (6 bytes each):
  *   0 - 3 : time (unsigned long int)
  *   4 - 5 : zone (unsigned short)
  *   
@@ -325,9 +325,7 @@ void appendLog( unsigned long int time_of_breach, unsigned short zone ){
   number_of_breaches++;
   EEPROM.put( NUMBER_OF_BREACHES, number_of_breaches );
 
-  int memory_address = LOG_MEMORY_START + (LOG_LENGTH * number_of_breaches );
-
-  Serial.println( number_of_breaches );
+  int memory_address = LOG_MEMORY_START + (( LOG_MEMORY_START + (LOG_LENGTH * number_of_breaches) ) % 500);
 
   // Write our log to EEPROM
   EEPROM.put( memory_address, time_of_breach );
@@ -345,7 +343,7 @@ void printLog( short current_log ){
 
   if( current_log <= number_of_breaches && current_log != 0){
     // If we have a log to show 
-    int memory_address = LOG_MEMORY_START + (LOG_LENGTH * current_log);
+    int memory_address = LOG_MEMORY_START + (( LOG_MEMORY_START + (LOG_LENGTH * current_log) ) % 500);
     
     unsigned long int time_of_breach;
     unsigned short zone;
@@ -445,14 +443,15 @@ void toggleAlarmSet( ){
     unsigned short temp_alarm = !alarm_set;
     
     if( temp_alarm ){
-      lcd.print( "ALARM SET" );
-      delay(800);
       logout( );
-      for (int i = 19; i < 20 && i >= 0; i--){
+      for (int i = 9; i < 10 && i >= 0; i--){
         lcd.clear();
         lcd.print(i);
         delay(1000);
       }
+      lcd.clear();
+      lcd.print( "ALARM SET" );
+      delay(800);
     } else{
       lcd.print( "ALARM UNSET" );
       delay(800);
@@ -471,7 +470,6 @@ void toggleAlarm( ){
   lcd.clear();
   lcd.setCursor(0,1);
   if( alarm_set ){
-    Serial.println( alarm_set );
     if( alarm_active ){
       lcd.print( "ALARM ACTIVE     " );
       digitalWrite( ALARM_PIN, HIGH );
@@ -724,13 +722,22 @@ void loop() {
     EEPROM.get( UPPER_TIME_BOUND, upper );
     currentHour = hour();
 
+    lcd.clear();
+    lcd.print("Plz login (EQ)");
     long start_time = millis();
     while( (millis() - start_time) < 20000 ){
-      irrecv.resume(); 
-      irrecv.decode(&results);
-
-      if( results.value == 0xFF906F ){
-        loginMode( );
+       
+      irrecv.resume();
+      delay(300);
+      if(irrecv.decode(&results)){  
+        if( results.value == 0xFF906F ){
+          if( !is_user_logged_in ){
+           loginMode( );
+          }
+          lcd.print("Crisis averted");
+          delay(800);
+          break;
+        }
       }
     }
     irrecv.resume(); 
