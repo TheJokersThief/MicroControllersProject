@@ -380,7 +380,7 @@ void printLog( short current_log ){
     {
       case 0xFF22DD: printLog( current_log - 1 );    break;
       case 0xFF02FD: printLog( current_log + 1 );    break;
-      case 0xFFB04F: /* If return, just let it go */ break;
+      case 0xFFB04F: lcd.clear(); /* If return, just let it go */ break;
       default: printLog(current_log); // Other button press or undefined
     }
     irrecv.resume();
@@ -725,6 +725,7 @@ void loop() {
     lcd.clear();
     lcd.print("Plz login (EQ)");
     long start_time = millis();
+    lcd.setCursor(0,1);
     while( (millis() - start_time) < 20000 ){
        
       irrecv.resume();
@@ -734,11 +735,16 @@ void loop() {
           if( !is_user_logged_in ){
            loginMode( );
           }
+          lcd.clear();
           lcd.print("Crisis averted");
           delay(800);
           break;
         }
       }
+      lcd.clear();
+      lcd.print("Plz login (EQ)");
+      lcd.setCursor(0,1);
+      lcd.print( 20 - ((millis() - start_time) / 1000) );
     }
     irrecv.resume(); 
 
@@ -827,4 +833,3 @@ void loop() {
   }
 
 }
-
