@@ -99,10 +99,7 @@
 #define LOG_MEMORY_START  100
 #define LOG_LENGTH        6
 
-#define TIME_MSG_LEN  11   // time sync to PC is HEADER followed by Unix time_t as ten ASCII digits
-#define TIME_HEADER  'T'   // Header tag for serial time sync message
-#define TIME_REQUEST  7    // ASCII bell character requests a time sync message 
-
+// ~~~~~~~~~~ IR ~~~~~~~~~~~~~~~
 #define IR_RECV_PIN   12
 IRrecv irrecv(IR_RECV_PIN);
 decode_results results;
@@ -129,18 +126,7 @@ unsigned short is_user_logged_in = 0;
  */
 void printTime(){
   lcd.setCursor(0, 0);
-
-  lcd.print( hour() );
-  lcd.print(':');
-  printWithLeadingZero( minute() );
-
-  lcd.print( ' ' );
-
-  printWithLeadingZero( day() );
-  lcd.print( '/' );
-  printWithLeadingZero( month() );
-  lcd.print( '/' );
-  lcd.print( year() );
+  convertUnixToReadable(now());
 }
 
 /**
@@ -236,6 +222,27 @@ void changeTime(){
     setTime(newTime);
 }
 
+int getDigitFromIR(){
+  while( 1 ){
+    irrecv.resume();
+    while( !irrecv.decode(&results) ) { /* Wait for input! */ }
+    switch(results.value)
+    {
+      case 0xFF6897: return 0;
+      case 0xFF30CF: return 1;
+      case 0xFF18E7: return 2;
+      case 0xFF7A85: return 3;
+      case 0xFF10EF: return 4;
+      case 0xFF38C7: return 5;
+      case 0xFF5AA5: return 6;
+      case 0xFF42BD: return 7;
+      case 0xFF4AB5: return 8;
+      case 0xFF52AD: return 9;
+      default:       break; // Other button press or undefined; reloop
+    }
+  }
+}
+
 /**
  * Attempt to log in a user, prompting
  *   them for a user or admin password
@@ -262,25 +269,7 @@ int loginMode() {
 
     lcd.setCursor(0, 1);
     for(int i = 0; i < 4; i++){
-      int received_value = 0;
-      irrecv.resume();
-      while( !irrecv.decode(&results) ) { /* Wait for input! */ }
-      switch(results.value)
-      {
-        case 0xFF6897: received_value = 0;      break;
-        case 0xFF30CF: received_value = 1;      break;
-        case 0xFF18E7: received_value = 2;      break;
-        case 0xFF7A85: received_value = 3;      break;
-        case 0xFF10EF: received_value = 4;      break;
-        case 0xFF38C7: received_value = 5;      break;
-        case 0xFF5AA5: received_value = 6;      break;
-        case 0xFF42BD: received_value = 7;      break;
-        case 0xFF4AB5: received_value = 8;      break;
-        case 0xFF52AD: received_value = 9;      break;
-        case 0xFFB04F: Serial.println("RET");   break;
-        default: i--; break; // Other button press or undefined
-      }
-      
+      int received_value = getDigitFromIR();      
       pin_entered *= 10;
       pin_entered += received_value;
       lcd.print('*');
@@ -574,24 +563,7 @@ void setOption( short option ){
     unsigned int final_value = 0;
     lcd.setCursor(0,1);
     for(int i = 0; i < digits; i++){
-      int received_value = 0;
-      irrecv.resume();
-      while( !irrecv.decode(&results) ) { /* Wait for input! */ }
-        switch(results.value)
-        {
-          case 0xFF6897: received_value = 0;      break;
-          case 0xFF30CF: received_value = 1;      break;
-          case 0xFF18E7: received_value = 2;      break;
-          case 0xFF7A85: received_value = 3;      break;
-          case 0xFF10EF: received_value = 4;      break;
-          case 0xFF38C7: received_value = 5;      break;
-          case 0xFF5AA5: received_value = 6;      break;
-          case 0xFF42BD: received_value = 7;      break;
-          case 0xFF4AB5: received_value = 8;      break;
-          case 0xFF52AD: received_value = 9;      break;
-          case 0xFFB04F: Serial.println("RET");   break;
-          default: i--; break; // Other button press or undefined
-        }
+      int received_value = getDigitFromIR();
         final_value *= 10;
         final_value += received_value;
         lcd.print(received_value);
@@ -605,24 +577,7 @@ void setOption( short option ){
     unsigned short final_value = 0;
     lcd.setCursor(0,1);
     for(int i = 0; i < digits; i++){
-      int received_value = 0;
-      irrecv.resume();
-      while( !irrecv.decode(&results) ) { /* Wait for input! */ }
-        switch(results.value)
-        {
-          case 0xFF6897: received_value = 0;      break;
-          case 0xFF30CF: received_value = 1;      break;
-          case 0xFF18E7: received_value = 2;      break;
-          case 0xFF7A85: received_value = 3;      break;
-          case 0xFF10EF: received_value = 4;      break;
-          case 0xFF38C7: received_value = 5;      break;
-          case 0xFF5AA5: received_value = 6;      break;
-          case 0xFF42BD: received_value = 7;      break;
-          case 0xFF4AB5: received_value = 8;      break;
-          case 0xFF52AD: received_value = 9;      break;
-          case 0xFFB04F: Serial.println("RET");   break;
-          default: i--; break; // Other button press or undefined
-        }
+      int received_value = getDigitFromIR();
         final_value *= 10;
         final_value += received_value;
         lcd.print(received_value);
@@ -674,15 +629,6 @@ int settingsSet( ){
 
 void setup() {
   Serial.begin(9600);
-  // Interrupts once per second
-  // TCCR1A = 0;
-  // TCCR1B = 0;
-  // OCR1A = 15625;
-  // TCCR1B |= (1 << WGM12);
-  // TCCR1B |= (1 << CS10);
-  // TCCR1B |= (1 << CS12);
-  // TIMSK1 |= (1 << OCIE1A);
-  sei();
 
   pinMode(ALARM_PIN, OUTPUT);
   pinMode(CONTINUOUS_ZONE_PIN, INPUT);
