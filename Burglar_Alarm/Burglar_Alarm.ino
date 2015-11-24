@@ -76,7 +76,7 @@
 // ~~~~~~~ DIGITAL ZONE ~~~~~~~~
 #define DIGITAL_ZONE          1
 #define DIGITAL_CONDITION     20    // HIGH (1) or LOW (0)
-#define DIGITAL_ZONE_PIN      2
+#define DIGITAL_ZONE_PIN      3
 
  // ~~~~~~~ ANALOG ZONE ~~~~~~~~
 #define ANALOG_ZONE           2
