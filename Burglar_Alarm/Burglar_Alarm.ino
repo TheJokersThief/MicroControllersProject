@@ -10,8 +10,8 @@
  * Digital
  * -------
  * 
- * 2 (interrupt) : Digital Zone 
- * 3 (interrupt) : Continuous Zone 
+ * 2 (interrupt) : Continuous Zone 
+ * 3 (interrupt) : Digital Zone
  * 4 : LCD Screen 
  * 5 : LCD Screen
  * 6 : LCD Screen
