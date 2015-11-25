@@ -3,7 +3,17 @@
 #include <IRremote.h>
 #include <LiquidCrystal.h>
 
-/*
+/**
+ * @author Colm Cahalane <insert_student_id>
+ * @author Evan Smith <113300626>
+ *
+ * Build a burglar alarm --- The task for the project 
+ * was to build a device, using an arduino, that could 
+ * monitor several different types of zones, log alarm
+ * trips and allow for user and admin interaction via 
+ * an LCD. When an alarm condition is met, a buzzer 
+ * or LED will go off indicating as such.
+ * 
  * Pins
  * ====
  * 
@@ -36,6 +46,12 @@
  *   Prev     : Previous log
  * Mute       : Turn off alarm
  * Power      : Set/unset the alarm
+ * 0  : Set user password
+ * 1  : Set admin password
+ * 2  : Set lower bound hour for entry/exit zone
+ * 3  : Set upper bound hour for entry/exit zone
+ * 4  : Set digital activate condition
+ * 5  : Set analog threshold
  *
  * EEPROM Mapping
  * --------------
