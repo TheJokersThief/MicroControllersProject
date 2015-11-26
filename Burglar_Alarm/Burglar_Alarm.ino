@@ -4,7 +4,7 @@
 #include <LiquidCrystal.h>
 
 /**
- * @author Colm Cahalane <insert_student_id>
+ * @author Colm Cahalane <113326986>
  * @author Evan Smith <113300626>
  *
  * Build a burglar alarm --- The task for the project 
